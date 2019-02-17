@@ -59,20 +59,24 @@ public:
 
     void clear();
 
-    vector<KeyFrame*> mvpKeyFrameOrigins;
+    vector<KeyFrame*> mvpKeyFrameOrigins;   // 重置时清理的资源，这里在单目初始化的时候，保存了初始时刻的那个参考关键帧！在 LoopClosing.cc 中用了这个值
 
     std::mutex mMutexMapUpdate;
 
-    // This avoid that two points are created simultaneously in separate threads (id conflict)
+    // This avoid that two points are created simultaneously in separate threads (id conflict) // 创建 MapPoint 时需要的锁
     std::mutex mMutexPointCreation;
 
 protected:
-    std::set<MapPoint*> mspMapPoints;
-    std::set<KeyFrame*> mspKeyFrames;
+    // 下面 4 个连续的变量，在重置时需要清理相应资源
+    // 所有的地图点{目前是关键帧节点对应的 3d 点}
+    std::set<MapPoint*> mspMapPoints;   // 在重置已经清理指针资源,对应关键帧的地图点，这里直接清理即可
+    // 所有关键帧
+    std::set<KeyFrame*> mspKeyFrames;   // 已清理过指针资源，直接对应 Map,保存关键帧
 
-    std::vector<MapPoint*> mvpReferenceMapPoints;
+    std::vector<MapPoint*> mvpReferenceMapPoints; // 在单目初始化时，通过一个函数给其赋值两个关键帧三角化后的所有 3d MapPoint,用来与追踪后的帧进行再次投影匹配。其实这里不需要在单目化时赋值。因为在
+                                                  // Tracking 中局部建图函数会自动更新这个值.这个值就是局部关键帧组
 
-    long unsigned int mnMaxKFid;
+    long unsigned int mnMaxKFid;    // 默认初始化为0，此时地图中保存的最大关键帧 id
 
     // Index related to a big change in the map (loop closure, global BA)
     int mnBigChangeIdx;

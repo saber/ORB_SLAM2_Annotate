@@ -36,18 +36,18 @@ void LoadImages(const string &strFile, vector<string> &vstrImageFilenames,
 int main(int argc, char **argv)
 {
     if(argc != 4)
-    {
+    {                           // 可执行文件  字典                相机配置文件      数据集文件
         cerr << endl << "Usage: ./mono_tum path_to_vocabulary path_to_settings path_to_sequence" << endl;
         return 1;
     }
 
     // Retrieve paths to images
-    vector<string> vstrImageFilenames;
+    vector<string> vstrImageFilenames;  // 彩色图像路径信息
     vector<double> vTimestamps;
     string strFile = string(argv[3])+"/rgb.txt";
     LoadImages(strFile, vstrImageFilenames, vTimestamps);
 
-    int nImages = vstrImageFilenames.size();
+    int nImages = vstrImageFilenames.size();    // 图片集大小
 
     // Create SLAM system. It initializes all system threads and gets ready to process frames.
     ORB_SLAM2::System SLAM(argv[1],argv[2],ORB_SLAM2::System::MONOCULAR,true);
@@ -62,10 +62,10 @@ int main(int argc, char **argv)
 
     // Main loop
     cv::Mat im;
-    for(int ni=0; ni<nImages; ni++)
+    for(int ni = 0; ni < nImages; ni++) // 仿照 30fps 的频率处理图像
     {
         // Read image from file
-        im = cv::imread(string(argv[3])+"/"+vstrImageFilenames[ni],CV_LOAD_IMAGE_UNCHANGED);
+        im = cv::imread(string(argv[3])+"/"+vstrImageFilenames[ni], CV_LOAD_IMAGE_UNCHANGED);    // 按照原格式读取图像
         double tframe = vTimestamps[ni];
 
         if(im.empty())
@@ -76,13 +76,14 @@ int main(int argc, char **argv)
         }
 
 #ifdef COMPILEDWITHC11
+        //  以 s 为单位
         std::chrono::steady_clock::time_point t1 = std::chrono::steady_clock::now();
 #else
         std::chrono::monotonic_clock::time_point t1 = std::chrono::monotonic_clock::now();
 #endif
 
         // Pass the image to the SLAM system
-        SLAM.TrackMonocular(im,tframe);
+        SLAM.TrackMonocular(im,tframe); // 可以返回一个当前帧的 pose
 
 #ifdef COMPILEDWITHC11
         std::chrono::steady_clock::time_point t2 = std::chrono::steady_clock::now();
@@ -92,17 +93,17 @@ int main(int argc, char **argv)
 
         double ttrack= std::chrono::duration_cast<std::chrono::duration<double> >(t2 - t1).count();
 
-        vTimesTrack[ni]=ttrack;
+        vTimesTrack[ni]=ttrack; // 跟踪一帧图像所需时间
 
         // Wait to load the next frame
-        double T=0;
-        if(ni<nImages-1)
-            T = vTimestamps[ni+1]-tframe;
-        else if(ni>0)
-            T = tframe-vTimestamps[ni-1];
+        double T = 0;
+        if(ni < nImages-1)
+            T = vTimestamps[ni+1]-tframe;   // 当前帧到后一帧时间段
+        else if(ni > 0) // 仅仅处理最后一帧条件执行
+            T = tframe-vTimestamps[ni-1];   // 前一帧到当前帧时间段
 
-        if(ttrack<T)
-            usleep((T-ttrack)*1e6);
+        if(ttrack < T)
+            usleep((T-ttrack) * 1e6);   // us   // 将当前进程挂起一段时间
     }
 
     // Stop all threads
@@ -111,7 +112,7 @@ int main(int argc, char **argv)
     // Tracking time statistics
     sort(vTimesTrack.begin(),vTimesTrack.end());
     float totaltime = 0;
-    for(int ni=0; ni<nImages; ni++)
+    for(int ni = 0; ni < nImages; ni++)
     {
         totaltime+=vTimesTrack[ni];
     }
@@ -120,8 +121,8 @@ int main(int argc, char **argv)
     cout << "mean tracking time: " << totaltime/nImages << endl;
 
     // Save camera trajectory
-    SLAM.SaveKeyFrameTrajectoryTUM("KeyFrameTrajectory.txt");
-
+    SLAM.SaveKeyFrameTrajectoryTUM("KeyFrameTrajectory.txt");   // 按照 timestamp tx ty tz qx qy qz qw 形式存储的！
+                                                                // 之后与 ground_truth 对齐后进行比较！
     return 0;
 }
 
@@ -130,9 +131,9 @@ void LoadImages(const string &strFile, vector<string> &vstrImageFilenames, vecto
     ifstream f;
     f.open(strFile.c_str());
 
-    // skip first three lines
+    // skip first three lines,前三行是数据集的说明
     string s0;
-    getline(f,s0);
+    getline(f,s0);  // 读取一行数据到 s0
     getline(f,s0);
     getline(f,s0);
 
@@ -142,7 +143,7 @@ void LoadImages(const string &strFile, vector<string> &vstrImageFilenames, vecto
         getline(f,s);
         if(!s.empty())
         {
-            stringstream ss;
+            stringstream ss;    // stringstream 输入输出流，可进可出
             ss << s;
             double t;
             string sRGB;

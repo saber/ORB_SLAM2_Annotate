@@ -64,66 +64,69 @@ protected:
 protected:
 
     // KeyFrames and matches
-    KeyFrame* mpKF1;
-    KeyFrame* mpKF2;
-
-    std::vector<cv::Mat> mvX3Dc1;
-    std::vector<cv::Mat> mvX3Dc2;
-    std::vector<MapPoint*> mvpMapPoints1;
-    std::vector<MapPoint*> mvpMapPoints2;
-    std::vector<MapPoint*> mvpMatches12;
-    std::vector<size_t> mvnIndices1;
+    KeyFrame* mpKF1; // 闭环线程正在处理的关键帧
+    KeyFrame* mpKF2; // 经过一致性检验的闭环关键帧
+    // 下面存储的值，都是在匹配点对中。经过了检验对应的地图点是有效后，才加入的。
+    // 而下面的索引号都是一一对应的 (个别不是的已经标记出)
+    std::vector<cv::Mat> mvX3Dc1; // init :reserve = mN1,关键帧 1 对应的地图点，变换到关键帧 1 对应的相机坐标系
+    std::vector<cv::Mat> mvX3Dc2; // init 与上同理。关键帧 2 对应的地图点，闭环到关键帧 2 对应的相机坐标系
+    std::vector<MapPoint*> mvpMapPoints1; // init : reserve = mN1,在匹配点对中，实际有效的地图点。关键帧 1 对应的
+    std::vector<MapPoint*> mvpMapPoints2; // init 同上，后面同上
+    std::vector<MapPoint*> mvpMatches12; // (原始匹配关系，没有检验是否都是有效的地图点)关键帧 1 与关键帧 2 匹配的点对. 内部元素是：关键帧1 序号为 i 的关键点匹配的关键帧 2 的地图点
+    std::vector<size_t> mvnIndices1; // init: reserve = mN1, 实际大小就是 N。 mvnIndices[i] = idx: 记录 当地图点有效时，对应的关键帧 1 原始关键点/地图点的索引编号idx.
+                                     // 通过索引 idx 就可以直接在关键帧 1 中找到对应关键点。
+                                     // 内部元素个数其实就是实际有效匹配点对数。
     std::vector<size_t> mvSigmaSquare1;
     std::vector<size_t> mvSigmaSquare2;
-    std::vector<size_t> mvnMaxError1;
-    std::vector<size_t> mvnMaxError2;
+    std::vector<size_t> mvnMaxError1; // 关键帧 1 图像坐标系上的重投影误差。 [i] 代表第 i 个关键点
+    std::vector<size_t> mvnMaxError2; // 关键帧 2 图像坐标系上的重投影误差。 [i] 代表第 i 个关键点
 
-    int N;
-    int mN1;
+    int N; // 实际有效的匹配点对数
+    int mN1; // 以关键帧 1 为基准的,关键帧 1 和关键帧 2 初始匹配的点对数
 
-    // Current Estimation
-    cv::Mat mR12i;
-    cv::Mat mt12i;
-    float ms12i;
-    cv::Mat mT12i;
-    cv::Mat mT21i;
-    std::vector<bool> mvbInliersi;
-    int mnInliersi;
+    // Current Estimation 根据 3 个任选 点对，按照论文 Horn 计算步骤，得到的旋转、平移、尺度因子
+    cv::Mat mR12i; // 旋转
+    cv::Mat mt12i; // 平移
+    float ms12i; // 单目尺度因子 s, 对于双目和 rgbd 为 1
+    cv::Mat mT12i; // 上面计算出来的 s旋转 + 平移
+    cv::Mat mT21i; // T21i^-1
+    std::vector<bool> mvbInliersi; // 标记是否是内点 init = resize(N).
+    int mnInliersi; // 当前计算的变换矩阵，对应的内点集个数 CheckInliers()
 
-    // Current Ransac State
-    int mnIterations;
+    // Current Ransac State // 下面值记录的是 RANSAC 迭代过程中最好的值。变量含义可以参考上面介绍的
+    int mnIterations; // init = 0 当前迭代次数
     std::vector<bool> mvbBestInliers;
-    int mnBestInliers;
+    int mnBestInliers; // init = 0
     cv::Mat mBestT12;
-    cv::Mat mBestRotation;
+    cv::Mat mBestRotation; // mR12i 带有尺度信息。
     cv::Mat mBestTranslation;
     float mBestScale;
 
     // Scale is fixed to 1 in the stereo/RGBD case
-    bool mbFixScale;
+    bool mbFixScale; // 单目为 false,双目和 RGB-D 为 true
 
     // Indices for random selection
-    std::vector<size_t> mvAllIndices;
+    std::vector<size_t> mvAllIndices; // init: reserve = mN1,最后一个元素就代表实际有效的匹配点对数 maxN。每个元素都是从 0-maxN 依次递增的。
 
     // Projections
-    std::vector<cv::Mat> mvP1im1;
-    std::vector<cv::Mat> mvP2im2;
+    std::vector<cv::Mat> mvP1im1; // 在关键帧 1 图像坐标系上的点坐标，与 mvX3Dc1 是一一对应的
+    std::vector<cv::Mat> mvP2im2; // 与上同理
 
     // RANSAC probability
-    double mRansacProb;
+    double mRansacProb; // init = 0.99 随机采样 s 个样本中至少有一次没有野值的概率为 p
 
     // RANSAC min inliers
-    int mRansacMinInliers;
+    int mRansacMinInliers; // 最小内点集个数 init = 6，在 ComputeSim3 时，给了 20
 
     // RANSAC max iterations
-    int mRansacMaxIts;
+    int mRansacMaxIts; // 最大迭代次数 init = 300,在 ComputeSim3 时，给了 300
 
     // Threshold inlier/outlier. e = dist(Pi,T_ij*Pj)^2 < 5.991*mSigma2
     float mTh;
     float mSigma2;
 
     // Calibration
-    cv::Mat mK1;
+    cv::Mat mK1; // 关键帧 1 对应的内参矩阵
     cv::Mat mK2;
 
 };

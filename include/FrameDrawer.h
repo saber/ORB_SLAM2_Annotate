@@ -53,15 +53,16 @@ protected:
     void DrawTextInfo(cv::Mat &im, int nState, cv::Mat &imText);
 
     // Info of the frame to be drawn
-    cv::Mat mIm;
-    int N;
-    vector<cv::KeyPoint> mvCurrentKeys;
-    vector<bool> mvbMap, mvbVO;
-    bool mbOnlyTracking;
-    int mnTracked, mnTrackedVO;
-    vector<cv::KeyPoint> mvIniKeys;
-    vector<int> mvIniMatches;
-    int mState;
+    cv::Mat mIm; // 在跟踪线程中，刚刚处理完毕的图像
+    int N; // 图像 ORB 提取的关键点个数
+    vector<cv::KeyPoint> mvCurrentKeys; // 图像对应的原始地图点(有可能是未去除畸变的点集，根据数据集图像是否去除畸变来决定)
+    vector<bool> mvbMap, mvbVO; // init: N 个 false,mvbMap:在正式追踪过程中标记当前地图点是否被关键帧观测过。 这个与上面的 mvCurrentKeys 对应，然后没被观测的关键点就不显示
+                                // mvbVO: 如果地图点没有被观测过，此时这里对应位置为 true。还不知道如何使用？
+    bool mbOnlyTracking; // 默认为追踪模式即 false
+    int mnTracked, mnTrackedVO; // mnTracked: 当前图像有效的地图点个数(也是用来显示当前匹配的个数)
+    vector<cv::KeyPoint> mvIniKeys; // 初始化时，对应的初始参考帧关键点(未去除畸变的)
+    vector<int> mvIniMatches; // 很有可能初始化时没有成功，初始化时刻，参考帧和当前帧匹配的对(能够进行三角化的) mvIniMatches[i] = index; 表示参考帧 i 关键点和当前帧关键点 index 是配对的
+    int mState; // update跟新上次追踪线程所处状态
 
     Map* mpMap;
 

@@ -62,8 +62,8 @@ protected:
   // Associated vocabulary
   const ORBVocabulary* mpVoc;
 
-  // Inverted file
-  std::vector<list<KeyFrame*> > mvInvertedFile;
+  // Inverted file // 第一个 vector 索引单词ID。这个变量表示对于同一个单词id。多少个关键帧包含这个单词.如果一个关键帧被剔除的话。那么就需要清理相应的记录
+  std::vector<list<KeyFrame*> > mvInvertedFile; // 重置时需要清理的资源。目前仅仅知道只在闭环线程中加入的。但是加入时会有条件。这些内部的关键帧其实就是追踪线程中创建的关键帧！
 
   // Mutex
   std::mutex mMutex;

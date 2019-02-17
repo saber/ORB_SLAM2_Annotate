@@ -21,10 +21,10 @@
 
 #ifndef SYSTEM_H
 #define SYSTEM_H
-
-#include<string>
-#include<thread>
-#include<opencv2/core/core.hpp>
+#include <unistd.h>
+#include <string>
+#include <thread>
+#include <opencv2/core/core.hpp>
 
 #include "Tracking.h"
 #include "FrameDrawer.h"
@@ -128,7 +128,7 @@ private:
     eSensor mSensor;
 
     // ORB vocabulary used for place recognition and feature matching.
-    ORBVocabulary* mpVocabulary;
+    ORBVocabulary* mpVocabulary;    // bow
 
     // KeyFrame database for place recognition (relocalization and loop detection).
     KeyFrameDatabase* mpKeyFrameDatabase;
@@ -151,7 +151,7 @@ private:
     // The viewer draws the map and the current camera pose. It uses Pangolin.
     Viewer* mpViewer;
 
-    FrameDrawer* mpFrameDrawer;
+    FrameDrawer* mpFrameDrawer; // 当前图像显示（实时追踪）
     MapDrawer* mpMapDrawer;
 
     // System threads: Local Mapping, Loop Closing, Viewer.
@@ -160,19 +160,19 @@ private:
     std::thread* mptLoopClosing;
     std::thread* mptViewer;
 
-    // Reset flag
+    // Reset flag(重置系统，实际上最后结果是调用系统初始化失败做的工作,或者在显示线程中进行手动置位)
     std::mutex mMutexReset;
-    bool mbReset;
+    bool mbReset;   // 默认为 false ，
 
-    // Change mode flags
+    // Change mode flags（只有在 viewer gui 中手动选择进行切换）
     std::mutex mMutexMode;
-    bool mbActivateLocalizationMode;
-    bool mbDeactivateLocalizationMode;
+    bool mbActivateLocalizationMode;    // 默认为 false true = 开启定位模式
+    bool mbDeactivateLocalizationMode;  // 默认 false ture = 关闭定位模式
 
     // Tracking state
-    int mTrackingState;
-    std::vector<MapPoint*> mTrackedMapPoints;
-    std::vector<cv::KeyPoint> mTrackedKeyPointsUn;
+    int mTrackingState; // 系统当前 Tracking 追踪状态
+    std::vector<MapPoint*> mTrackedMapPoints;   // 当前帧对应的 MapPoint 集合
+    std::vector<cv::KeyPoint> mTrackedKeyPointsUn;  // undistorted (actually used by the system).// 当前帧去除畸变的关键点
     std::mutex mMutexState;
 };
 

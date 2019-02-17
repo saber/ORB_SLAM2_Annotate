@@ -304,7 +304,7 @@ protected:
     vector<NodeId> children;
     /// Parent node (undefined in case of root)
     NodeId parent;
-    /// Node descriptor
+    /// Node descriptor // 如何计算？？？
     TDescriptor descriptor;
 
     /// Word id if the node is a word
@@ -420,7 +420,7 @@ protected:
   GeneralScoring* m_scoring_object;
   
   /// Tree nodes
-  std::vector<Node> m_nodes;
+  std::vector<Node> m_nodes; // 存储第 m 层，的节点，一层一个 vector ，每一层按照顺序存储节点,有问题？？
   
   /// Words of the vocabulary (tree leaves)
   /// this condition holds: m_words[wid]->word_id == wid
@@ -1148,7 +1148,7 @@ void TemplatedVocabulary<TDescriptor,F>::transform(
     for(fit = features.begin(); fit < features.end(); ++fit, ++i_feature)
     {
       WordId id;
-      NodeId nid;
+      NodeId nid; // 当前描述子对应的最好距离的树节点 id
       WordValue w; 
       // w is the idf value if TF_IDF, 1 if TF
       
@@ -1157,7 +1157,7 @@ void TemplatedVocabulary<TDescriptor,F>::transform(
       if(w > 0) // not stopped
       { 
         v.addWeight(id, w);
-        fv.addFeature(nid, i_feature);
+        fv.addFeature(nid, i_feature); // 这里 i_feature 记录的是当前图像的描述子序号，id 是这个描述子对应的最好的树节点（指定层的）
       }
     }
     
@@ -1235,7 +1235,7 @@ void TemplatedVocabulary<TDescriptor,F>::transform(const TDescriptor &feature,
     nodes = m_nodes[final_id].children;
     final_id = nodes[0];
  
-    double best_d = F::distance(feature, m_nodes[final_id].descriptor);
+    double best_d = F::distance(feature, m_nodes[final_id].descriptor); // 这个描述子可能是代表当前类别节点{当前节点包含多个描述子}
 
     for(nit = nodes.begin() + 1; nit != nodes.end(); ++nit)
     {
@@ -1248,7 +1248,7 @@ void TemplatedVocabulary<TDescriptor,F>::transform(const TDescriptor &feature,
       }
     }
     
-    if(nid != NULL && current_level == nid_level)
+    if(nid != NULL && current_level == nid_level) // 获取指定层，最好的节点，然后作为这副图像描述子对应的树节点
       *nid = final_id;
     
   } while( !m_nodes[final_id].isLeaf() );

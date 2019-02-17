@@ -61,24 +61,24 @@ private:
     bool Stop();
 
     System* mpSystem;
-    FrameDrawer* mpFrameDrawer;
+    FrameDrawer* mpFrameDrawer; // cv::Mat 形式，显示图片关键点等等...
     MapDrawer* mpMapDrawer;
     Tracking* mpTracker;
 
     // 1/fps in ms
-    double mT;
-    float mImageWidth, mImageHeight;
+    double mT; // 相机两张图像之间时间间隔，周期时间 ms
+    float mImageWidth, mImageHeight;    // 对于单目，没有这个值，仅仅针对双目和 RGB-D 相机
 
-    float mViewpointX, mViewpointY, mViewpointZ, mViewpointF;
+    float mViewpointX, mViewpointY, mViewpointZ, mViewpointF; // 对于单目 TUM数据集：0, -0.7, -1.8, 500 。前三个参数是相机在世界坐标的位置
 
     bool CheckFinish();
     void SetFinish();
-    bool mbFinishRequested;
-    bool mbFinished;
+    bool mbFinishRequested; // init = false
+    bool mbFinished;    // init = true ，在 run() 中修改为 false，不如直接在构造函数中直接进行修改！
     std::mutex mMutexFinish;
 
-    bool mbStopped;
-    bool mbStopRequested;
+    bool mbStopped; // init = true ，在 run() 中修改为 false. true 表示将要停止当前显示线程
+    bool mbStopRequested;   // init = false, 在 Tracking 线程中 Reset() 置位时调用 RequestStop() 手动请求停止. 然后内部置 true 表示请求停止，然后显示线程检测到后，就会进行线程停止操作
     std::mutex mMutexStop;
 
 };

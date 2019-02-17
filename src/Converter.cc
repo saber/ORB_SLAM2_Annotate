@@ -23,17 +23,17 @@
 
 namespace ORB_SLAM2
 {
-
+// 将一副图像描述子矩阵，转化为一行对应一个关键点的描述子，方便 DBow，转其为词袋向量和特征向量
 std::vector<cv::Mat> Converter::toDescriptorVector(const cv::Mat &Descriptors)
 {
     std::vector<cv::Mat> vDesc;
-    vDesc.reserve(Descriptors.rows);
+    vDesc.reserve(Descriptors.rows);    // reserve() 是将容器容量扩充到当前指定的大小。恰好不浪费内存
     for (int j=0;j<Descriptors.rows;j++)
         vDesc.push_back(Descriptors.row(j));
 
     return vDesc;
 }
-
+// 将 cv::Mat 形式的 3x4 [R|t] 矩阵变为 g2o 节点形式的位姿矩阵
 g2o::SE3Quat Converter::toSE3Quat(const cv::Mat &cvT)
 {
     Eigen::Matrix<double,3,3> R;
@@ -45,13 +45,13 @@ g2o::SE3Quat Converter::toSE3Quat(const cv::Mat &cvT)
 
     return g2o::SE3Quat(R,t);
 }
-
+// 将 g2o::SE3Quat 位姿矩阵转换为 cv::Mat 4x4 形式
 cv::Mat Converter::toCvMat(const g2o::SE3Quat &SE3)
 {
     Eigen::Matrix<double,4,4> eigMat = SE3.to_homogeneous_matrix();
     return toCvMat(eigMat);
 }
-
+// 转换成 cv::Mat 形式
 cv::Mat Converter::toCvMat(const g2o::Sim3 &Sim3)
 {
     Eigen::Matrix3d eigR = Sim3.rotation().toRotationMatrix();
@@ -79,7 +79,7 @@ cv::Mat Converter::toCvMat(const Eigen::Matrix3d &m)
 
     return cvMat.clone();
 }
-
+// 上面和这个函数实际重定义？？
 cv::Mat Converter::toCvMat(const Eigen::Matrix<double,3,1> &m)
 {
     cv::Mat cvMat(3,1,CV_32F);

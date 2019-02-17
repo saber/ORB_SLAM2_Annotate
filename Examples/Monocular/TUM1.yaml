@@ -2,10 +2,11 @@
 
 #--------------------------------------------------------------------------------------------
 # Camera Parameters. Adjust them!
+# TUM 数据集 640×480  （宽度 x 高度）
 #--------------------------------------------------------------------------------------------
-
+#数据集内部详细介绍了参数：https://vision.in.tum.de/data/datasets/rgbd-dataset/file_formats
 # Camera calibration and distortion parameters (OpenCV) 
-Camera.fx: 517.306408
+Camera.fx: 517.306408   #每米有多少个像素！
 Camera.fy: 516.469215
 Camera.cx: 318.643040
 Camera.cy: 255.313989
@@ -39,7 +40,7 @@ ORBextractor.nLevels: 8
 # Image is divided in a grid. At each cell FAST are extracted imposing a minimum response.
 # Firstly we impose iniThFAST. If no corners are detected we impose a lower value minThFAST
 # You can lower these values if your images have low contrast			
-ORBextractor.iniThFAST: 20
+ORBextractor.iniThFAST: 20 # FAST 特征检测阈值
 ORBextractor.minThFAST: 7
 
 #--------------------------------------------------------------------------------------------
@@ -48,11 +49,11 @@ ORBextractor.minThFAST: 7
 Viewer.KeyFrameSize: 0.05
 Viewer.KeyFrameLineWidth: 1
 Viewer.GraphLineWidth: 0.9
-Viewer.PointSize:2
+Viewer.PointSize:2 # 地图点大小
 Viewer.CameraSize: 0.08
 Viewer.CameraLineWidth: 3
 Viewer.ViewpointX: 0
 Viewer.ViewpointY: -0.7
 Viewer.ViewpointZ: -1.8
-Viewer.ViewpointF: 500
+Viewer.ViewpointF: 500  #???
 

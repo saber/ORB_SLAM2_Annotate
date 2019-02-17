@@ -5,7 +5,7 @@
 #--------------------------------------------------------------------------------------------
 
 # Camera calibration and distortion parameters (OpenCV) 
-Camera.fx: 517.306408
+Camera.fx: 517.306408   #每米有多少个像素！
 Camera.fy: 516.469215
 Camera.cx: 318.643040
 Camera.cy: 255.313989
@@ -22,14 +22,14 @@ Camera.height: 480
 # Camera frames per second 
 Camera.fps: 30.0
 
-# IR projector baseline times fx (aprox.)
-Camera.bf: 40.0
+# IR projector baseline times fx (aprox.)近似双目公式： b * fx
+Camera.bf: 40.0  
 
 # Color order of the images (0: BGR, 1: RGB. It is ignored if images are grayscale)
 Camera.RGB: 1
 
-# Close/Far threshold. Baseline times.
-ThDepth: 40.0
+# Close/Far threshold. Baseline times.# 基线的倍数，
+ThDepth: 40.0       #参数如何选取？
 
 # Deptmap values factor 
 DepthMapFactor: 5000.0

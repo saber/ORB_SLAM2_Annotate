@@ -30,7 +30,7 @@ FeatureVector::~FeatureVector(void)
 
 void FeatureVector::addFeature(NodeId id, unsigned int i_feature)
 {
-  FeatureVector::iterator vit = this->lower_bound(id);
+  FeatureVector::iterator vit = this->lower_bound(id); // >= id 的位置插入，说明是按照升序排列的！
   
   if(vit != this->end() && vit->first == id)
   {

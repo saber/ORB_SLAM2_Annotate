@@ -40,11 +40,11 @@ MapDrawer::MapDrawer(Map* pMap, const string &strSettingPath):mpMap(pMap)
     mCameraLineWidth = fSettings["Viewer.CameraLineWidth"];
 
 }
-
+// 在 pangolin 面板上绘制地图点。局部地图点用红色。剩下除了局部地图点，其他所有地图点都是用黑色绘制。且大小为 2
 void MapDrawer::DrawMapPoints()
 {
-    const vector<MapPoint*> &vpMPs = mpMap->GetAllMapPoints();
-    const vector<MapPoint*> &vpRefMPs = mpMap->GetReferenceMapPoints();
+    const vector<MapPoint*> &vpMPs = mpMap->GetAllMapPoints(); // 当前所有地图点
+    const vector<MapPoint*> &vpRefMPs = mpMap->GetReferenceMapPoints(); // 当前帧（或者上一帧的）为基准的局部地图点
 
     set<MapPoint*> spRefMPs(vpRefMPs.begin(), vpRefMPs.end());
 
@@ -52,19 +52,19 @@ void MapDrawer::DrawMapPoints()
         return;
 
     glPointSize(mPointSize);
-    glBegin(GL_POINTS);
-    glColor3f(0.0,0.0,0.0);
+    glBegin(GL_POINTS); // 绘制所有地图点，下面给出的世界坐标系下的点坐标！
+    glColor3f(0.0,0.0,0.0); // 所有地图点{去除局部地图点}用黑色
 
     for(size_t i=0, iend=vpMPs.size(); i<iend;i++)
     {
-        if(vpMPs[i]->isBad() || spRefMPs.count(vpMPs[i]))
+        if(vpMPs[i]->isBad() || spRefMPs.count(vpMPs[i])) // 对于所有地图点和局部地图点，相同地图点仅仅绘制一个
             continue;
         cv::Mat pos = vpMPs[i]->GetWorldPos();
         glVertex3f(pos.at<float>(0),pos.at<float>(1),pos.at<float>(2));
     }
     glEnd();
 
-    glPointSize(mPointSize);
+    glPointSize(mPointSize); // 绘制局部地图点(用红色)
     glBegin(GL_POINTS);
     glColor3f(1.0,0.0,0.0);
 
@@ -79,7 +79,7 @@ void MapDrawer::DrawMapPoints()
 
     glEnd();
 }
-
+// 绘制关键帧和图模型。关键帧用蓝色。
 void MapDrawer::DrawKeyFrames(const bool bDrawKF, const bool bDrawGraph)
 {
     const float &w = mKeyFrameSize;
@@ -88,19 +88,19 @@ void MapDrawer::DrawKeyFrames(const bool bDrawKF, const bool bDrawGraph)
 
     const vector<KeyFrame*> vpKFs = mpMap->GetAllKeyFrames();
 
-    if(bDrawKF)
+    if(bDrawKF) // 绘制关键帧
     {
         for(size_t i=0; i<vpKFs.size(); i++)
         {
             KeyFrame* pKF = vpKFs[i];
-            cv::Mat Twc = pKF->GetPoseInverse().t();
+            cv::Mat Twc = pKF->GetPoseInverse().t(); // 因为 cv::Mat 是先存储的行，即 行优先，但是 pangolin 用的列优先，下面 glMultMatrixf() 需要的是列优先存储的内存指针
 
             glPushMatrix();
 
-            glMultMatrixf(Twc.ptr<GLfloat>(0));
+            glMultMatrixf(Twc.ptr<GLfloat>(0)); // 上面通过转置变换了存储方式。
 
             glLineWidth(mKeyFrameLineWidth);
-            glColor3f(0.0f,0.0f,1.0f);
+            glColor3f(0.0f,0.0f,1.0f); // 关键帧为蓝色
             glBegin(GL_LINES);
             glVertex3f(0,0,0);
             glVertex3f(w,h,z);
@@ -131,16 +131,17 @@ void MapDrawer::DrawKeyFrames(const bool bDrawKF, const bool bDrawGraph)
     if(bDrawGraph)
     {
         glLineWidth(mGraphLineWidth);
-        glColor4f(0.0f,1.0f,0.0f,0.6f);
+        glColor4f(0.0f,1.0f,0.0f,0.6f); // 绿色+透明度(越小越透明[0,1])
         glBegin(GL_LINES);
 
         for(size_t i=0; i<vpKFs.size(); i++)
         {
             // Covisibility Graph
-            const vector<KeyFrame*> vCovKFs = vpKFs[i]->GetCovisiblesByWeight(100);
+            const vector<KeyFrame*> vCovKFs = vpKFs[i]->GetCovisiblesByWeight(100); // 取出 100 个相邻关键帧。如果不够的话，就取出全部临近关键帧
             cv::Mat Ow = vpKFs[i]->GetCameraCenter();
             if(!vCovKFs.empty())
             {
+                // 画出以当前关键帧为起点。终到序号大于当前关键帧的所有共视关键帧。之间的连线。为什么要这么画？？？
                 for(vector<KeyFrame*>::const_iterator vit=vCovKFs.begin(), vend=vCovKFs.end(); vit!=vend; vit++)
                 {
                     if((*vit)->mnId<vpKFs[i]->mnId)
@@ -151,7 +152,7 @@ void MapDrawer::DrawKeyFrames(const bool bDrawKF, const bool bDrawGraph)
                 }
             }
 
-            // Spanning tree
+            // Spanning tree // 当前关键帧到父关键帧连线
             KeyFrame* pParent = vpKFs[i]->GetParent();
             if(pParent)
             {
@@ -160,7 +161,7 @@ void MapDrawer::DrawKeyFrames(const bool bDrawKF, const bool bDrawGraph)
                 glVertex3f(Owp.at<float>(0),Owp.at<float>(1),Owp.at<float>(2));
             }
 
-            // Loops
+            // Loops 闭环时形成的关系？？？？带看
             set<KeyFrame*> sLoopKFs = vpKFs[i]->GetLoopEdges();
             for(set<KeyFrame*>::iterator sit=sLoopKFs.begin(), send=sLoopKFs.end(); sit!=send; sit++)
             {
@@ -182,18 +183,18 @@ void MapDrawer::DrawCurrentCamera(pangolin::OpenGlMatrix &Twc)
     const float h = w*0.75;
     const float z = w*0.6;
 
-    glPushMatrix();
+    glPushMatrix(); // 和下面的 glPopMatrix() 成对出现。表示每次变换都是相对于世界坐标原点
 
 #ifdef HAVE_GLES
         glMultMatrixf(Twc.m);
 #else
-        glMultMatrixd(Twc.m);
+        glMultMatrixd(Twc.m); // 相机的姿态变换。 使得下面的模型位置做一个变换
 #endif
-
-    glLineWidth(mCameraLineWidth);
-    glColor3f(0.0f,1.0f,0.0f);
-    glBegin(GL_LINES);
-    glVertex3f(0,0,0);
+    // 下面绘制相机视角框，就是用多个前后两条直线绘制的。
+    glLineWidth(mCameraLineWidth); // 线宽 = 3
+    glColor3f(0.0f,1.0f,0.0f); // 设置颜色为绿色！
+    glBegin(GL_LINES); // 在 begin 和 end 之间进行绘图，下面绘制一个类似相机的小窗口
+    glVertex3f(0,0,0); // 顶点坐标
     glVertex3f(w,h,z);
     glVertex3f(0,0,0);
     glVertex3f(w,-h,z);
@@ -218,17 +219,19 @@ void MapDrawer::DrawCurrentCamera(pangolin::OpenGlMatrix &Twc)
     glPopMatrix();
 }
 
-
+// 设置当前追踪帧显示的位姿！在追踪线程中，初始 pose 估计后，以及 TrackLocalMap() 后，此时 Pose 就不会动了。
+// 此时在把当前追踪帧的 pose 加入这里以备后期显示。
 void MapDrawer::SetCurrentCameraPose(const cv::Mat &Tcw)
 {
     unique_lock<mutex> lock(mMutexCamera);
     mCameraPose = Tcw.clone();
 }
-
+// 获得当前相机矩阵
 void MapDrawer::GetCurrentOpenGLCameraMatrix(pangolin::OpenGlMatrix &M)
 {
     if(!mCameraPose.empty())
     {
+        // 相机 ---> 世界
         cv::Mat Rwc(3,3,CV_32F);
         cv::Mat twc(3,1,CV_32F);
         {
@@ -237,7 +240,7 @@ void MapDrawer::GetCurrentOpenGLCameraMatrix(pangolin::OpenGlMatrix &M)
             twc = -Rwc*mCameraPose.rowRange(0,3).col(3);
         }
 
-        M.m[0] = Rwc.at<float>(0,0);
+        M.m[0] = Rwc.at<float>(0,0); // 旋转矩阵的第一列
         M.m[1] = Rwc.at<float>(1,0);
         M.m[2] = Rwc.at<float>(2,0);
         M.m[3]  = 0.0;

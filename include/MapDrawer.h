@@ -46,15 +46,15 @@ public:
     void GetCurrentOpenGLCameraMatrix(pangolin::OpenGlMatrix &M);
 
 private:
+    // 在 TUM1.yaml 文件中的 Viewer Parameters
+    float mKeyFrameSize; // 0.05
+    float mKeyFrameLineWidth; // 1
+    float mGraphLineWidth; // 0.9
+    float mPointSize; // 2
+    float mCameraSize; // 0.08
+    float mCameraLineWidth; // 3
 
-    float mKeyFrameSize;
-    float mKeyFrameLineWidth;
-    float mGraphLineWidth;
-    float mPointSize;
-    float mCameraSize;
-    float mCameraLineWidth;
-
-    cv::Mat mCameraPose;
+    cv::Mat mCameraPose; // 4x4 当前显示的帧的 pose,这个值是在追踪线程中设置的。在 Track() 函数 TrackLocalMap() 之后。以及在单目和双目初始时设置的。
 
     std::mutex mMutexCamera;
 };

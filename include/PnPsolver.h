@@ -125,71 +125,77 @@ class PnPsolver {
   void mat_to_quat(const double R[3][3], double q[4]);
 
 
-  double uc, vc, fu, fv;
+  double uc, vc, fu, fv; // fu = fx, fv = fy, uc = cx, vc = cy
 
-  double * pws, * us, * alphas, * pcs;
-  int maximum_number_of_correspondences;
-  int number_of_correspondences;
+  double * pws, * us, * alphas, * pcs; // init = 0 pws:存储 mRansacMinSet = 4 个世界坐标系下的点坐标。顺序存储点坐标 x y z
+                                       //          us : 存储与上面 pws 中世界坐标点对应的图像坐标点坐标。
+                                       //          alphas: 对应论文中计算的 (1) 式的 alphas_ij 。具体计算在 compute_barycentric_coordinates()
+                                       //                   alphas[4 * number_of_correspondences] 每个世界参考点都会有 4 个 alphas 参数
+                                       //          pcs: 3 * number_of_correspondences: 存储 4 个相机坐标系下点的参考点坐标。根据 alphas 以及相机坐标系的 4 个控制点 ccs
+  int maximum_number_of_correspondences; // init = 0，之后为： mRansacMinSet = 4
+  int number_of_correspondences; // init = 0 在 add_correspondence() 中增加的，经过 4 次调用，后该值 为 4
 
-  double cws[4][3], ccs[4][3];
+  double cws[4][3], ccs[4][3]; // cws： 保存任意 4 个世界坐标点的计算出来的控制点。
+                               // ccs: 相机坐标系下的 4 个控制点
   double cws_determinant;
 
-  vector<MapPoint*> mvpMapPointMatches;
+  vector<MapPoint*> mvpMapPointMatches; // [i] = pMP; i: 表示图像关键点序号 pMP :表示图像关键点对应的 3d 地图点，构成 3d-2d 匹配对
 
-  // 2D Points
-  vector<cv::Point2f> mvP2D;
-  vector<float> mvSigma2;
+  // 2D Points ( size = Frame 有效的关键点(有对应的匹配的点对))
+  vector<cv::Point2f> mvP2D; // 输入的 Frame 图像的有对应地图点的关键点
+  vector<float> mvSigma2; // size = N,尺度因子相关的： mvScaleFactor[i]*mvScaleFactor[i]; i 已经对应 mvp2D 中的关键点所属金字塔层数
 
   // 3D Points
-  vector<cv::Point3f> mvP3Dw;
+  vector<cv::Point3f> mvP3Dw; // 直接存储的 3d 坐标点(与 2D 图像坐标直接匹配的)
 
   // Index in Frame
-  vector<size_t> mvKeyPointIndices;
+  vector<size_t> mvKeyPointIndices; // 存储有效的关键点序号(对应 Frame 图像的),通过 这个值调用 size() 即可知道当前有效的 3d-2d 点对多少个！
 
   // Current Estimation
   double mRi[3][3];
   double mti[3];
   cv::Mat mTcwi;
-  vector<bool> mvbInliersi;
-  int mnInliersi;
+  vector<bool> mvbInliersi; // size = N
+  int mnInliersi; // init = 0 ,在一次计算 Rt 后验证得到的内点个数
 
-  // Current Ransac State
-  int mnIterations;
-  vector<bool> mvbBestInliers;
-  int mnBestInliers;
-  cv::Mat mBestTcw;
+  // Current Ransac State(每次 Ransac 迭代时，当次迭代状态)
+  int mnIterations; // init = 0,记录当前迭代次数
+  vector<bool> mvbBestInliers; // 记录迭代过程中最好的内点 bool 判断 N
+  int mnBestInliers; // init = 0 , 记录迭代中最好的内点个数，与上面这个变量对应
+  cv::Mat mBestTcw; // 迭代过程中最好的 R t
 
   // Refined
-  cv::Mat mRefinedTcw;
+  cv::Mat mRefinedTcw; // 提炼好的 r t
   vector<bool> mvbRefinedInliers;
-  int mnRefinedInliers;
+  int mnRefinedInliers; // 根据最好的内点个数。再次进行求解 r t ，然后检查内点。此时得到的内点个数
 
   // Number of Correspondences
-  int N;
+  int N; // init = 有效匹配点对个数(Frame 可以找到匹配地图点的对数)
 
   // Indices for random selection [0 .. N-1]
-  vector<size_t> mvAllIndices;
+  vector<size_t> mvAllIndices; // 用来随机选择 0- mvP3Dw.size()  :内部存储的是有效的匹配点对数量
 
   // RANSAC probability
-  double mRansacProb;
+  double mRansacProb; // init = 0.99
 
   // RANSAC min inliers
-  int mRansacMinInliers;
+  int mRansacMinInliers; // init = { N*mRansacEpsilon, minInliers=8 , minSet=4}
+                         // 如果 > 8 直接是 N*mRansacEpsilon，如果 4 < N*... <8 则是 8 如果 < 4, 则是 4
 
   // RANSAC max iterations
-  int mRansacMaxIts;
+  int mRansacMaxIts; // init = 300, 在设置参数 SetRansacParameters 中仍然会调节，这里可能不是 300
 
   // RANSAC expected inliers/total ratio
-  float mRansacEpsilon;
+  float mRansacEpsilon; // init = 0.4 ,之后在设置参数 PnPsolver::SetRansacParameters 函数内部. = max{0.4, mRansacMinInliers/N}
 
   // RANSAC Threshold inlier/outlier. Max error e = dist(P1,T_12*P2)^2
   float mRansacTh;
 
   // RANSAC Minimun Set used at each iteration
-  int mRansacMinSet;
+  int mRansacMinSet; // 默认 = minSet =4 在设置参数函数中设置
 
   // Max square error associated with scale level. Max error = th*th*sigma(level)*sigma(level)
-  vector<float> mvMaxError;
+  vector<float> mvMaxError; // size = N,有效内点个数。目前存储的是： sigma(level)*th(5.991)
 
 };
 

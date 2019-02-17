@@ -59,7 +59,7 @@ public:
     // Used in loop detection (Loop Closing)
      int SearchByProjection(KeyFrame* pKF, cv::Mat Scw, const std::vector<MapPoint*> &vpPoints, std::vector<MapPoint*> &vpMatched, int th);
 
-    // Search matches between MapPoints in a KeyFrame and ORB in a Frame.
+    // Search matches between MapPoints in a KeyFrame and ORB in a Frame. 关键帧地图点和当前普通帧 orb 特征点进行搜索匹配
     // Brute force constrained to ORB that belong to the same vocabulary node (at a certain level)
     // Used in Relocalisation and Loop Detection
     int SearchByBoW(KeyFrame *pKF, Frame &F, std::vector<MapPoint*> &vpMapPointMatches);
@@ -84,9 +84,9 @@ public:
 
 public:
 
-    static const int TH_LOW;
-    static const int TH_HIGH;
-    static const int HISTO_LENGTH;
+    static const int TH_LOW;    // 50   两个描述子算作匹配点的距离的阈值
+    static const int TH_HIGH;   // 100
+    static const int HISTO_LENGTH;  // 30 直方图横坐标范围
 
 
 protected:
@@ -97,8 +97,9 @@ protected:
 
     void ComputeThreeMaxima(std::vector<int>* histo, const int L, int &ind1, int &ind2, int &ind3);
 
-    float mfNNratio;
-    bool mbCheckOrientation;
+    float mfNNratio;    // 构造 ORBmatcher 时给定的参数，其用在描述子匹配汉明距离阈值筛选。
+                        // if(bestDist<(float)bestDist2*mfNNratio)，满足此条件时，才有可能是一个匹配点对，当然后面还会有直方图筛选。
+    bool mbCheckOrientation;    // true: 表示需要用直方图来筛选一些不好的匹配。一般情况下都需要！可以看 SearchForInitialization() 函数内部有使用过程！
 };
 
 }// namespace ORB_SLAM

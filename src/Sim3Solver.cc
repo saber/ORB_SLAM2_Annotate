@@ -42,7 +42,7 @@ Sim3Solver::Sim3Solver(KeyFrame *pKF1, KeyFrame *pKF2, const vector<MapPoint *> 
 
     vector<MapPoint*> vpKeyFrameMP1 = pKF1->GetMapPointMatches();
 
-    mN1 = vpMatched12.size();
+    mN1 = vpMatched12.size(); // 以关键帧1 为基准的关键点个数
 
     mvpMapPoints1.reserve(mN1);
     mvpMapPoints2.reserve(mN1);
@@ -58,7 +58,7 @@ Sim3Solver::Sim3Solver(KeyFrame *pKF1, KeyFrame *pKF2, const vector<MapPoint *> 
 
     mvAllIndices.reserve(mN1);
 
-    size_t idx=0;
+    size_t idx=0; // 记录有效匹配点对数
     for(int i1=0; i1<mN1; i1++)
     {
         if(vpMatched12[i1])
@@ -75,16 +75,16 @@ Sim3Solver::Sim3Solver(KeyFrame *pKF1, KeyFrame *pKF2, const vector<MapPoint *> 
             int indexKF1 = pMP1->GetIndexInKeyFrame(pKF1);
             int indexKF2 = pMP2->GetIndexInKeyFrame(pKF2);
 
-            if(indexKF1<0 || indexKF2<0)
+            if(indexKF1<0 || indexKF2<0) // 地图点与关键帧没有关联
                 continue;
 
-            const cv::KeyPoint &kp1 = pKF1->mvKeysUn[indexKF1];
+            const cv::KeyPoint &kp1 = pKF1->mvKeysUn[indexKF1]; // 获取索引对应的关键点
             const cv::KeyPoint &kp2 = pKF2->mvKeysUn[indexKF2];
 
             const float sigmaSquare1 = pKF1->mvLevelSigma2[kp1.octave];
             const float sigmaSquare2 = pKF2->mvLevelSigma2[kp2.octave];
 
-            mvnMaxError1.push_back(9.210*sigmaSquare1);
+            mvnMaxError1.push_back(9.210*sigmaSquare1); // ???? 为什么选取这个参数？？？
             mvnMaxError2.push_back(9.210*sigmaSquare2);
 
             mvpMapPoints1.push_back(pMP1);
@@ -110,7 +110,11 @@ Sim3Solver::Sim3Solver(KeyFrame *pKF1, KeyFrame *pKF2, const vector<MapPoint *> 
 
     SetRansacParameters();
 }
-
+// 默认参数如下：
+//   probability = 0.99,
+//   minInliers = 6 ,
+//   maxIterations = 300
+// 在实际用的时候这里 minInliers = 20
 void Sim3Solver::SetRansacParameters(double probability, int minInliers, int maxIterations)
 {
     mRansacProb = probability;
@@ -127,20 +131,26 @@ void Sim3Solver::SetRansacParameters(double probability, int minInliers, int max
     // Set RANSAC iterations according to probability, epsilon, and max iterations
     int nIterations;
 
-    if(mRansacMinInliers==N)
+    if(mRansacMinInliers==N) // 有效内点集就是最小内点集，那么只能迭代一次
         nIterations=1;
     else
-        nIterations = ceil(log(1-mRansacProb)/log(1-pow(epsilon,3)));
+        nIterations = ceil(log(1-mRansacProb)/log(1-pow(epsilon,3))); // 这个公式有问题？？？
 
-    mRansacMaxIts = max(1,min(nIterations,mRansacMaxIts));
+    mRansacMaxIts = max(1,min(nIterations,mRansacMaxIts)); // 更新 RANSAC 最大迭代次数
 
     mnIterations = 0;
 }
 
+//! \see Closed-form solution of absolute orientation using unit quaternions 三对点确定 sim3 相似变换
+//! \param nIterations 指定的迭代次数(5)
+//! \param bNoMore true: 达到了最大迭代次数。但是仍然没有达到要求。此时说明检测的闭环帧 pKF2 不好
+//! \param vbInliers vbInliers[i] = value; 表示的是关键帧 1 对应的关键点 i 是否是内点， value = true; 表示是内点.与原始关键帧1的关键点是一一对应的
+//! \param nInliers 对应最好的内点个数
+//! \return 相似变换
 cv::Mat Sim3Solver::iterate(int nIterations, bool &bNoMore, vector<bool> &vbInliers, int &nInliers)
 {
     bNoMore = false;
-    vbInliers = vector<bool>(mN1,false);
+    vbInliers = vector<bool>(mN1,false); // 这一步很关键。保证无效的内点也是 false
     nInliers=0;
 
     if(N<mRansacMinInliers)
@@ -151,34 +161,35 @@ cv::Mat Sim3Solver::iterate(int nIterations, bool &bNoMore, vector<bool> &vbInli
 
     vector<size_t> vAvailableIndices;
 
-    cv::Mat P3Dc1i(3,3,CV_32F);
+    cv::Mat P3Dc1i(3,3,CV_32F); // 可以装 3 组点(列为主)
     cv::Mat P3Dc2i(3,3,CV_32F);
 
     int nCurrentIterations = 0;
-    while(mnIterations<mRansacMaxIts && nCurrentIterations<nIterations)
+    while(mnIterations<mRansacMaxIts && nCurrentIterations<nIterations) // 这里实际上限制了最大迭代次数为 mRangsacMaxIts
     {
         nCurrentIterations++;
         mnIterations++;
 
-        vAvailableIndices = mvAllIndices;
+        vAvailableIndices = mvAllIndices; // RANSAC 随机选取的索引
 
-        // Get min set of points
+        // Get min set of points 不能选取重复的元素
         for(short i = 0; i < 3; ++i)
         {
-            int randi = DUtils::Random::RandomInt(0, vAvailableIndices.size()-1);
+            int randi = DUtils::Random::RandomInt(0, vAvailableIndices.size()-1); // 获得指定元素区间的随机数
 
             int idx = vAvailableIndices[randi];
 
-            mvX3Dc1[idx].copyTo(P3Dc1i.col(i));
+            mvX3Dc1[idx].copyTo(P3Dc1i.col(i)); // 点对赋值到指定位置
             mvX3Dc2[idx].copyTo(P3Dc2i.col(i));
 
-            vAvailableIndices[randi] = vAvailableIndices.back();
+            vAvailableIndices[randi] = vAvailableIndices.back(); // 防止取出重复的元素
             vAvailableIndices.pop_back();
         }
+        // 在初始化时，已经得到固定了尺度信息，为什么在还要计算相似变换？？？
+        // (随着误差的累计，运动尺度会飘移，导致地图点尺度也会飘移。因此在遇到闭环时，两者之间运动其实相差一个尺度。也就是多了一个自由度，变为了 sim3)
+        ComputeSim3(P3Dc1i,P3Dc2i); // 根据匹配的点对计算 Sim3 相似变换矩阵。
 
-        ComputeSim3(P3Dc1i,P3Dc2i);
-
-        CheckInliers();
+        CheckInliers(); // 计算当前相似变换矩阵对应的内点集个数
 
         if(mnInliersi>=mnBestInliers)
         {
@@ -189,17 +200,17 @@ cv::Mat Sim3Solver::iterate(int nIterations, bool &bNoMore, vector<bool> &vbInli
             mBestTranslation = mt12i.clone();
             mBestScale = ms12i;
 
-            if(mnInliersi>mRansacMinInliers)
+            if(mnInliersi>mRansacMinInliers) // 这里判断内点集满足最低条件，就表示当前变换，内点个数足够多。这里这么做的原因是，这个函数仅仅得到一个初始值。后面其他函数还会再次进行优化！
             {
                 nInliers = mnInliersi;
                 for(int i=0; i<N; i++)
                     if(mvbInliersi[i])
-                        vbInliers[mvnIndices1[i]] = true;
+                        vbInliers[mvnIndices1[i]] = true; //
                 return mBestT12;
             }
         }
     }
-
+    // 达到了最大迭代次数，但是仍然没有满足 『足够内点』这一条件那么此次 Sim3Solver 求解失败。对应的闭环关键帧不好
     if(mnIterations>=mRansacMaxIts)
         bNoMore=true;
 
@@ -211,11 +222,14 @@ cv::Mat Sim3Solver::find(vector<bool> &vbInliers12, int &nInliers)
     bool bFlag;
     return iterate(mRansacMaxIts,bFlag,vbInliers12,nInliers);
 }
-
+// P: 3x3 ，每一列是一个 3d 点坐标。在相机坐标系
+// Pr: 3x3 ,每一列同样是一个 3d 点坐标。以质心为原点的坐标
+// C: 3 个点的质心
+//    计算公式参考： Closed-form solution of absolute orientation using unit quaternions 2C 部分 Centroids of the Sets of Measurements
 void Sim3Solver::ComputeCentroid(cv::Mat &P, cv::Mat &Pr, cv::Mat &C)
 {
-    cv::reduce(P,C,1,CV_REDUCE_SUM);
-    C = C/P.cols;
+    cv::reduce(P,C,1,CV_REDUCE_SUM); // 这里是把 3x3 矩阵 P 的列元素全部对应元素求和，变为一个 3x1 向量 C
+    C = C/P.cols; // 求取质心坐标
 
     for(int i=0; i<P.cols; i++)
     {
@@ -223,6 +237,17 @@ void Sim3Solver::ComputeCentroid(cv::Mat &P, cv::Mat &Pr, cv::Mat &C)
     }
 }
 
+// P1 P2 是两幅图像的 3 对匹配点对。
+// 且 P1 p2 都是 3x3 矩阵，每一列都是一个 3d 点。 以 p1 为例。包含的点是相机坐标系的 3d 点。
+//    这里是要计算两个相机坐标之间的相似变换。变换是由点集 2 ---> 点集 1
+// 就是按照 Horn 论文 4C 部分介绍的计算步骤。
+//    计算了下面的内部变量：
+//    Current Estimation 根据 3 个任选 点对，按照论文 Horn 计算步骤，得到的旋转、平移、尺度因子
+//    cv::Mat mR12i; // 旋转
+//    cv::Mat mt12i; // 平移
+//    float ms12i; // 单目尺度因子 s, 对于双目和 rgbd 为 1
+//    cv::Mat mT12i; // 上面计算出来的 s旋转 + 平移
+//    cv::Mat mT21i; // T21i^-1
 void Sim3Solver::ComputeSim3(cv::Mat &P1, cv::Mat &P2)
 {
     // Custom implementation of:
@@ -230,19 +255,19 @@ void Sim3Solver::ComputeSim3(cv::Mat &P1, cv::Mat &P2)
 
     // Step 1: Centroid and relative coordinates
 
-    cv::Mat Pr1(P1.size(),P1.type()); // Relative coordinates to centroid (set 1)
+    cv::Mat Pr1(P1.size(),P1.type()); // Relative coordinates to centroid (set 1) 3x3 CV_32F
     cv::Mat Pr2(P2.size(),P2.type()); // Relative coordinates to centroid (set 2)
     cv::Mat O1(3,1,Pr1.type()); // Centroid of P1
     cv::Mat O2(3,1,Pr2.type()); // Centroid of P2
 
-    ComputeCentroid(P1,Pr1,O1);
+    ComputeCentroid(P1,Pr1,O1); // 计算质心，以及以质心为原点的点集坐标
     ComputeCentroid(P2,Pr2,O2);
 
     // Step 2: Compute M matrix
 
-    cv::Mat M = Pr2*Pr1.t();
+    cv::Mat M = Pr2*Pr1.t(); // 参考 Horn 论文 4A 部分,此时这个就表示由点集 2 ---> 点集 1
 
-    // Step 3: Compute N matrix
+    // Step 3: Compute N matrix // 同样参考 Horn 论文 4A 部分 N 用 M 元素表达。
 
     double N11, N12, N13, N14, N22, N23, N24, N33, N34, N44;
 
@@ -269,15 +294,15 @@ void Sim3Solver::ComputeSim3(cv::Mat &P1, cv::Mat &P2)
 
     cv::Mat eval, evec;
 
-    cv::eigen(N,eval,evec); //evec[0] is the quaternion of the desired rotation
+    cv::eigen(N,eval,evec); //evec[0] is the quaternion of the desired rotation // 这里 evec[0] 是单位向量 4x1
 
     cv::Mat vec(1,3,evec.type());
-    (evec.row(0).colRange(1,4)).copyTo(vec); //extract imaginary part of the quaternion (sin*axis)
+    (evec.row(0).colRange(1,4)).copyTo(vec); //extract imaginary part of the quaternion (sin(theta/2)*axis) 所以这个向量 vec 的模长就是 sin(theta/2)
 
     // Rotation angle. sin is the norm of the imaginary part, cos is the real part
-    double ang=atan2(norm(vec),evec.at<float>(0,0));
+    double ang=atan2(norm(vec),evec.at<float>(0,0)); // sin(theta/2),cos(theta/2) 已知后，计算 tan(theta/2) 反求旋转角 theta
 
-    vec = 2*ang*vec/norm(vec); //Angle-axis representation. quaternion angle is the half
+    vec = 2*ang*vec/norm(vec); //Angle-axis representation. quaternion angle is the half // 轴角
 
     mR12i.create(3,3,P1.type());
 
@@ -287,16 +312,16 @@ void Sim3Solver::ComputeSim3(cv::Mat &P1, cv::Mat &P2)
 
     cv::Mat P3 = mR12i*Pr2;
 
-    // Step 6: Scale
+    // Step 6: Scale // 对照论文 Horn 的 2D Finding the Scale
 
     if(!mbFixScale)
     {
-        double nom = Pr1.dot(P3);
+        double nom = Pr1.dot(P3); // 对于矩阵来说，其实就是把矩阵变为整个列向量。然后按照向量形式计算点乘.就是 sigma( rr,i . R(r'l,i) ) 就是 s 公式的分母
         cv::Mat aux_P3(P3.size(),P3.type());
         aux_P3=P3;
-        cv::pow(P3,2,aux_P3);
+        cv::pow(P3,2,aux_P3); // 因为旋转一个向量前后模长不变，所以这里直接计算旋转后的向量
         double den = 0;
-
+        // 计算论文中 s 的分子部分
         for(int i=0; i<aux_P3.rows; i++)
         {
             for(int j=0; j<aux_P3.cols; j++)
@@ -313,7 +338,7 @@ void Sim3Solver::ComputeSim3(cv::Mat &P1, cv::Mat &P2)
     // Step 7: Translation
 
     mt12i.create(1,3,P1.type());
-    mt12i = O1 - ms12i*mR12i*O2;
+    mt12i = O1 - ms12i*mR12i*O2; // 计算平移
 
     // Step 8: Transformation
 
@@ -337,10 +362,12 @@ void Sim3Solver::ComputeSim3(cv::Mat &P1, cv::Mat &P2)
 }
 
 
+// 分别根据计算出来的变换矩阵 mT12i mT21i 将两个关键帧对应的 3d 点投影到对方的图像坐标系上。
+// 根据提前设定的每个关键点对应的误差阈值，判断当前点是否属于内点
 void Sim3Solver::CheckInliers()
 {
-    vector<cv::Mat> vP1im2, vP2im1;
-    Project(mvX3Dc2,vP2im1,mT12i,mK1);
+    vector<cv::Mat> vP1im2, vP2im1; // 像素坐标
+    Project(mvX3Dc2,vP2im1,mT12i,mK1); // 3d - 2d 投影变换，2 个 3d 点集分别投影到另一个图像坐标系上，进行内点的检查
     Project(mvX3Dc1,vP1im2,mT21i,mK2);
 
     mnInliersi=0;
@@ -353,7 +380,7 @@ void Sim3Solver::CheckInliers()
         const float err1 = dist1.dot(dist1);
         const float err2 = dist2.dot(dist2);
 
-        if(err1<mvnMaxError1[i] && err2<mvnMaxError2[i])
+        if(err1<mvnMaxError1[i] && err2<mvnMaxError2[i]) // 满足重投影误差
         {
             mvbInliersi[i]=true;
             mnInliersi++;
@@ -363,7 +390,7 @@ void Sim3Solver::CheckInliers()
     }
 }
 
-
+// 获得 Ransac 估计的R
 cv::Mat Sim3Solver::GetEstimatedRotation()
 {
     return mBestRotation.clone();
@@ -378,7 +405,12 @@ float Sim3Solver::GetEstimatedScale()
 {
     return mBestScale;
 }
-
+/// \brief 将 3D 点集根据内参和外参投影到另一个图像坐标系
+/// \param vP3Dw 给定的 3d 点集
+/// \param vP2D 变换后的 2d 图像坐标系下的点
+/// \param Tcw 变换矩阵
+/// \param K 内参矩阵
+/// \return
 void Sim3Solver::Project(const vector<cv::Mat> &vP3Dw, vector<cv::Mat> &vP2D, cv::Mat Tcw, cv::Mat K)
 {
     cv::Mat Rcw = Tcw.rowRange(0,3).colRange(0,3);
@@ -401,7 +433,7 @@ void Sim3Solver::Project(const vector<cv::Mat> &vP3Dw, vector<cv::Mat> &vP2D, cv
         vP2D.push_back((cv::Mat_<float>(2,1) << fx*x+cx, fy*y+cy));
     }
 }
-
+// 将给定的所有相机坐标系 3D 点 3x1。变换到图像坐标系上。得到图像坐标系点对 2x1
 void Sim3Solver::FromCameraToImage(const vector<cv::Mat> &vP3Dc, vector<cv::Mat> &vP2D, cv::Mat K)
 {
     const float &fx = K.at<float>(0,0);
@@ -418,7 +450,7 @@ void Sim3Solver::FromCameraToImage(const vector<cv::Mat> &vP3Dc, vector<cv::Mat>
         const float x = vP3Dc[i].at<float>(0)*invz;
         const float y = vP3Dc[i].at<float>(1)*invz;
 
-        vP2D.push_back((cv::Mat_<float>(2,1) << fx*x+cx, fy*y+cy));
+        vP2D.push_back((cv::Mat_<float>(2,1) << fx*x+cx, fy*y+cy)); // 变换到图像坐标系
     }
 }
 

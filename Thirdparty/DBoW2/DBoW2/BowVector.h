@@ -17,13 +17,13 @@
 namespace DBoW2 {
 
 /// Id of words
-typedef unsigned int WordId;
+typedef unsigned int WordId; // 仅仅针对树中叶子节点的 id
 
 /// Value of a word
 typedef double WordValue;
 
 /// Id of nodes in the vocabulary treee
-typedef unsigned int NodeId;
+typedef unsigned int NodeId; // 字典树中的 id 不一定是叶子节点
 
 /// L-norms for normalization
 enum LNorm

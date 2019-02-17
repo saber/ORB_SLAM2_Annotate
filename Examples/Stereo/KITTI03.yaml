@@ -21,7 +21,7 @@ Camera.height: 376
 # Camera frames per second 
 Camera.fps: 10.0
 
-# stereo baseline times fx
+# stereo baseline times fx: 书上双目公式 b * f
 Camera.bf: 387.5744
 
 # Color order of the images (0: BGR, 1: RGB. It is ignored if images are grayscale)

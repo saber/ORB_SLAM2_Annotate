@@ -30,7 +30,7 @@ namespace ORB_SLAM2
 {
 
 System::System(const string &strVocFile, const string &strSettingsFile, const eSensor sensor,
-               const bool bUseViewer):mSensor(sensor), mpViewer(static_cast<Viewer*>(NULL)), mbReset(false),mbActivateLocalizationMode(false),
+               const bool bUseViewer) : mSensor(sensor), mpViewer(static_cast<Viewer*>(NULL)), mbReset(false), mbActivateLocalizationMode(false),
         mbDeactivateLocalizationMode(false)
 {
     // Output welcome message
@@ -49,7 +49,7 @@ System::System(const string &strVocFile, const string &strSettingsFile, const eS
     else if(mSensor==RGBD)
         cout << "RGB-D" << endl;
 
-    //Check settings file
+    //Check settings file   //yaml 文件
     cv::FileStorage fsSettings(strSettingsFile.c_str(), cv::FileStorage::READ);
     if(!fsSettings.isOpened())
     {
@@ -61,8 +61,8 @@ System::System(const string &strVocFile, const string &strSettingsFile, const eS
     //Load ORB Vocabulary
     cout << endl << "Loading ORB Vocabulary. This could take a while..." << endl;
 
-    mpVocabulary = new ORBVocabulary();
-    bool bVocLoad = mpVocabulary->loadFromTextFile(strVocFile);
+    mpVocabulary = new ORBVocabulary(); // 默认模式：k-d tree, k=10, L=5, weighting=TF-IDF, Scoring=L1-norm
+    bool bVocLoad = mpVocabulary->loadFromTextFile(strVocFile); // 下载字典文件(需要一些时间)
     if(!bVocLoad)
     {
         cerr << "Wrong path to vocabulary. " << endl;
@@ -84,25 +84,26 @@ System::System(const string &strVocFile, const string &strSettingsFile, const eS
     //Initialize the Tracking thread
     //(it will live in the main thread of execution, the one that called this constructor)
     mpTracker = new Tracking(this, mpVocabulary, mpFrameDrawer, mpMapDrawer,
-                             mpMap, mpKeyFrameDatabase, strSettingsFile, mSensor);
+                             mpMap, mpKeyFrameDatabase, strSettingsFile, mSensor);  // 主线程
 
     //Initialize the Local Mapping thread and launch
     mpLocalMapper = new LocalMapping(mpMap, mSensor==MONOCULAR);
-    mptLocalMapping = new thread(&ORB_SLAM2::LocalMapping::Run,mpLocalMapper);
-
+    mptLocalMapping = new thread(&ORB_SLAM2::LocalMapping::Run, mpLocalMapper); // 立刻启动线程 这里没有detach() 或者 join() 原因是，主线程关闭之前我们就已经处理
+                                                                                // 让这些子线程安全退出，所以不会出现：主线程退出后，子线程仍然跑并且利用主线程的资源的情况
+                                                                                // 所以即使不 detach() 或者 join() 此时也不会出现错误！
     //Initialize the Loop Closing thread and launch
-    mpLoopCloser = new LoopClosing(mpMap, mpKeyFrameDatabase, mpVocabulary, mSensor!=MONOCULAR);
-    mptLoopClosing = new thread(&ORB_SLAM2::LoopClosing::Run, mpLoopCloser);
+    mpLoopCloser = new LoopClosing(mpMap, mpKeyFrameDatabase, mpVocabulary, mSensor!=MONOCULAR);    //  单目的话，非固定尺度
+    mptLoopClosing = new thread(&ORB_SLAM2::LoopClosing::Run, mpLoopCloser);    // 立刻启动线程
 
     //Initialize the Viewer thread and launch
-    if(bUseViewer)
+    if(bUseViewer)  // 可以分离是否显示线程，如何写的？
     {
         mpViewer = new Viewer(this, mpFrameDrawer,mpMapDrawer,mpTracker,strSettingsFile);
-        mptViewer = new thread(&Viewer::Run, mpViewer);
+        mptViewer = new thread(&Viewer::Run, mpViewer); // 立刻启动线程
         mpTracker->SetViewer(mpViewer);
     }
-
-    //Set pointers between threads
+    // not join() thread????? 是因为在系统关闭的时候我们会依次退出其他线程后，才会退出主线程，所以不需要子线程 join()也可以完成。
+    //Set pointers between threads  // 线程之间进行互联访问
     mpTracker->SetLocalMapper(mpLocalMapper);
     mpTracker->SetLoopClosing(mpLoopCloser);
 
@@ -222,13 +223,14 @@ cv::Mat System::TrackMonocular(const cv::Mat &im, const double &timestamp)
         cerr << "ERROR: you called TrackMonocular but input sensor was not set to Monocular." << endl;
         exit(-1);
     }
-
+    // 这里仅仅在 viewer 的 gui 中手动交互，选择定位模式
+    // 平时默认不会启动定位模式,都是默认的跟踪模式
     // Check mode change
-    {
+    {   // 对于定位模式之后在看！！！！
         unique_lock<mutex> lock(mMutexMode);
-        if(mbActivateLocalizationMode)
+        if(mbActivateLocalizationMode)  // 变量值只在 Viewer 线程中改变的
         {
-            mpLocalMapper->RequestStop();
+            mpLocalMapper->RequestStop();   // 定位模式，要关闭局部建图线程！
 
             // Wait until Local Mapping has effectively stopped
             while(!mpLocalMapper->isStopped())
@@ -239,7 +241,7 @@ cv::Mat System::TrackMonocular(const cv::Mat &im, const double &timestamp)
             mpTracker->InformOnlyTracking(true);
             mbActivateLocalizationMode = false;
         }
-        if(mbDeactivateLocalizationMode)
+        if(mbDeactivateLocalizationMode)     // 变量值改变只在 Viewer 线程中改变的
         {
             mpTracker->InformOnlyTracking(false);
             mpLocalMapper->Release();
@@ -248,13 +250,14 @@ cv::Mat System::TrackMonocular(const cv::Mat &im, const double &timestamp)
     }
 
     // Check reset
+    // 检查条件：当前主线程 Tracking 跟踪丢失(初始化完毕后地图中关键帧个数小于等于 5) 就会调用该函数、在可视化线程 Viewer 中，当手动在 GUI 中点击 Rest 时
     {
-    unique_lock<mutex> lock(mMutexReset);
-    if(mbReset)
-    {
-        mpTracker->Reset();
-        mbReset = false;
-    }
+        unique_lock<mutex> lock(mMutexReset);
+        if(mbReset) // 在初始化完毕时,并且跟踪丢失时就会置位 true
+        {
+            mpTracker->Reset();
+            mbReset = false;
+        }
     }
 
     cv::Mat Tcw = mpTracker->GrabImageMonocular(im,timestamp);
@@ -266,13 +269,13 @@ cv::Mat System::TrackMonocular(const cv::Mat &im, const double &timestamp)
 
     return Tcw;
 }
-
+// 直接在 viewer 线程中激活定位模式
 void System::ActivateLocalizationMode()
 {
     unique_lock<mutex> lock(mMutexMode);
     mbActivateLocalizationMode = true;
 }
-
+// 关闭定位模式
 void System::DeactivateLocalizationMode()
 {
     unique_lock<mutex> lock(mMutexMode);
@@ -291,7 +294,9 @@ bool System::MapChanged()
     else
         return false;
 }
-
+// 系统重置,此时会间接重置地图（清理关键帧，地图点等资源与初始化失败同样的待遇）
+// 调用此函数的条件： 主线程 Tracking 在初始化完毕后5个关键帧之内跟踪丢失就会调用该函数、在可视化线程 Viewer 中，当手动在 GUI 中点击 Rest 时
+// 调用此函数后，会在主线程中 mbReset == ture 时，调用 Tracking::Reset() 函数进行多个线程内部资源的清零，包括关键帧和地图点的相应资源，就是做了初始化失败的工作
 void System::Reset()
 {
     unique_lock<mutex> lock(mMutexReset);
@@ -306,7 +311,7 @@ void System::Shutdown()
     {
         mpViewer->RequestFinish();
         while(!mpViewer->isFinished())
-            usleep(5000);
+            usleep(5000);   // 挂起当前进程，等待线程线程执行完成操作
     }
 
     // Wait until all thread have effectively stopped
@@ -315,7 +320,7 @@ void System::Shutdown()
         usleep(5000);
     }
 
-    if(mpViewer)
+    if(mpViewer)    // ??作用？？
         pangolin::BindToContext("ORB-SLAM2: Map Viewer");
 }
 
@@ -384,8 +389,8 @@ void System::SaveKeyFrameTrajectoryTUM(const string &filename)
 {
     cout << endl << "Saving keyframe trajectory to " << filename << " ..." << endl;
 
-    vector<KeyFrame*> vpKFs = mpMap->GetAllKeyFrames();
-    sort(vpKFs.begin(),vpKFs.end(),KeyFrame::lId);
+    vector<KeyFrame*> vpKFs = mpMap->GetAllKeyFrames(); // 调用移动构造函数
+    sort(vpKFs.begin(), vpKFs.end(), KeyFrame::lId);
 
     // Transform all keyframes so that the first keyframe is at the origin.
     // After a loop closure the first keyframe might not be at the origin.
@@ -393,18 +398,18 @@ void System::SaveKeyFrameTrajectoryTUM(const string &filename)
 
     ofstream f;
     f.open(filename.c_str());
-    f << fixed;
+    f << fixed; // 与 setprecision 一起使用，表示保留几位小数参考：https://blog.csdn.net/u011321546/article/details/9293547
 
-    for(size_t i=0; i<vpKFs.size(); i++)
+    for(size_t i = 0; i < vpKFs.size(); i++)
     {
         KeyFrame* pKF = vpKFs[i];
 
        // pKF->SetPose(pKF->GetPose()*Two);
 
-        if(pKF->isBad())
+        if(pKF->isBad())    // 什么是 bad keyframe?
             continue;
 
-        cv::Mat R = pKF->GetRotation().t();
+        cv::Mat R = pKF->GetRotation().t(); // 转置矩阵,内部保存的是 Tcw，我们需要的是： Rwc
         vector<float> q = Converter::toQuaternion(R);
         cv::Mat t = pKF->GetCameraCenter();
         f << setprecision(6) << pKF->mTimeStamp << setprecision(7) << " " << t.at<float>(0) << " " << t.at<float>(1) << " " << t.at<float>(2)
