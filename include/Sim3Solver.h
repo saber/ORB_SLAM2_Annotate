@@ -31,6 +31,8 @@
 
 namespace ORB_SLAM2
 {
+//! \brief 根据 Closed-form solution of absolute orientation using unit quaternions 论文，计算两个关键帧之间的相似变换。
+//!   只要给出 3 个点就可以计算一个 Sim3 ，然后用 rnasac 迭代多次，得到最好的 sim3
 
 class Sim3Solver
 {
@@ -64,12 +66,13 @@ protected:
 protected:
 
     // KeyFrames and matches
-    KeyFrame* mpKF1; // 闭环线程正在处理的关键帧
+    KeyFrame* mpKF1; // 闭环线程正在处理的关键帧(基准关键帧)
     KeyFrame* mpKF2; // 经过一致性检验的闭环关键帧
+
     // 下面存储的值，都是在匹配点对中。经过了检验对应的地图点是有效后，才加入的。
     // 而下面的索引号都是一一对应的 (个别不是的已经标记出)
     std::vector<cv::Mat> mvX3Dc1; // init :reserve = mN1,关键帧 1 对应的地图点，变换到关键帧 1 对应的相机坐标系
-    std::vector<cv::Mat> mvX3Dc2; // init 与上同理。关键帧 2 对应的地图点，闭环到关键帧 2 对应的相机坐标系
+    std::vector<cv::Mat> mvX3Dc2; // init 与上同理。关键帧 2 对应的地图点，变换到关键帧 2 对应的相机坐标系
     std::vector<MapPoint*> mvpMapPoints1; // init : reserve = mN1,在匹配点对中，实际有效的地图点。关键帧 1 对应的
     std::vector<MapPoint*> mvpMapPoints2; // init 同上，后面同上
     std::vector<MapPoint*> mvpMatches12; // (原始匹配关系，没有检验是否都是有效的地图点)关键帧 1 与关键帧 2 匹配的点对. 内部元素是：关键帧1 序号为 i 的关键点匹配的关键帧 2 的地图点

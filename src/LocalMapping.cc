@@ -115,6 +115,7 @@ void LocalMapping::Run()
 
     SetFinish(); // 设置局部建图线程完成
 }
+
 //  在 Tracking 线程中调用,插入新的关键帧，禁止 BA 优化
 void LocalMapping::InsertKeyFrame(KeyFrame *pKF)
 {
@@ -130,12 +131,15 @@ bool LocalMapping::CheckNewKeyFrames()
     unique_lock<mutex> lock(mMutexNewKFs);
     return(!mlNewKeyFrames.empty());
 }
-// 记住;跟踪线程仅仅插入关键帧。做了一次匹配。剩下的所有操作都是在局部建图线程中处理的。
-// 从新关键帧 list 中取出一个关键帧，计算 BoW 加速匹配，对取出的关键帧加入到对应地图点 observations 变量中，将他们进行关联。
-// （因为单目时，有些地图点是在跟踪线程中是直接通过投影得到的匹配，创建关键帧时，没有把关键帧加入到地图点变量中。因此地图点包含关键帧 这种关系当时没有更新，此时需要更新）
-// mlpRecentAddedMapPoints 这个变量加入的是最近添加的新三角化的地图点（但是这个变量中包含的地图点会有重复）。局部建图线程中会有地图点的擦除操作。
-//    对于单目这个变量包含的内容有：1、单目初始化时的所有地图点 2、在 CreateNewMapPoints 中创建新的地图点
-//   更新该关键帧对应的共视图，并将该关键帧插入地图中。（默认重的关键帧不会插入）
+
+//! \bug  经过测试发现在 vpMapPointMatches 中，也就是当前关键帧对应的匹配地图点，不同关键点竟然对应了同一个地图点！！！！！！！！！！！！
+//!      说明在追踪线程中匹配出现了问题。
+//! \note 记住:跟踪线程仅仅插入关键帧。做了一次匹配。剩下的所有操作都是在局部建图线程中处理的。
+//! \brief 从新关键帧 list 中取出一个关键帧，计算 BoW 加速匹配，对取出的关键帧加入到对应地图点 observations 变量中，将他们进行关联。
+//! （因为单目时，有些地图点是在跟踪线程中是直接通过投影得到的匹配，创建关键帧时，没有把关键帧加入到地图点变量中。因此地图点包含关键帧 这种关系当时没有更新，此时需要更新）
+//! mlpRecentAddedMapPoints 这个变量加入的是最近添加的新三角化的地图点（但是这个变量中包含的地图点会有重复）。局部建图线程中会有地图点的擦除操作。
+//!    对于单目这个变量包含的内容有：1、单目初始化时的所有地图点 2、在 CreateNewMapPoints 中创建新的地图点
+//!   更新该关键帧对应的共视图，并将该关键帧插入地图中。（默认重的关键帧不会插入）
 void LocalMapping::ProcessNewKeyFrame()
 {
     {   // 取出新的关键帧
@@ -151,7 +155,7 @@ void LocalMapping::ProcessNewKeyFrame()
 
     // Associate MapPoints to the new keyframe and update normal and descriptor。因为跟踪线程没有做。仅仅做了匹配。但是没有进行双向关联
     const vector<MapPoint*> vpMapPointMatches = mpCurrentKeyFrame->GetMapPointMatches(); // 这里的地图点并没有把当前关键帧加入自己的变量里。所以下面需要把关键帧加入到地图点。建立联系
-
+//std::cout << "ProcessNewKeyFrame start" << std::endl;
     for(size_t i=0; i<vpMapPointMatches.size(); i++)
     {
         MapPoint* pMP = vpMapPointMatches[i];
@@ -162,22 +166,27 @@ void LocalMapping::ProcessNewKeyFrame()
                 if(!pMP->IsInKeyFrame(mpCurrentKeyFrame)) // mObservations 中是否有这个关键帧变量。地图点与给定关键帧没有构成联系，需要添加关联。
                                                           // 因为当前帧与该地图点在追踪线程中已经构成了匹配联系
                 {
+//                    std::cout << "pMP ID if: " << pMP->mnId << std::endl;
+
                     pMP->AddObservation(mpCurrentKeyFrame, i); // 构建地图点和关键帧之间的联系。
                     pMP->UpdateNormalAndDepth(); // 在地图点加入关键帧联系时，必须要进行调用更新
                     pMP->ComputeDistinctiveDescriptors(); // 更新当前地图点最具有代表性的描述子
                 }
-                else // this can only happen for new stereo points inserted by the Tracking // 这里对于单目来说这里也会调用，已测试！下面就是原因
+                else // this can only happen for new stereo points inserted by the Tracking
+                    // 这里对于单目来说这里也会调用，已测试！下面就是原因
+                    // 发现一个问题是，对于单目来说，这里只在初始化后才会出现一次，但是这里正常追踪时却出现了多次。
+                    // 经过测试发现在 vpMapPointMatches 中，不同关键点竟然对应了同一个地图点！！！！！！！！！！！！
                 {   // 这个地图点的加入会有重复的。其实可以用 std::set 类型
+//                    std::cout << "pMP ID else: " << pMP->mnId << std::endl;
+//                    std::cout << "mpCurrentKeyFrame ID: " << mpCurrentKeyFrame->mnId << std::endl;
                     mlpRecentAddedMapPoints.push_back(pMP); // 对于单目初始化时的两个关键帧。那些地图点都会在这里加入。因为那些地图点和关键帧进行了 AddObservation() 关联
                                                             // 对于单目来说。跟踪线程仅仅建立关键帧。除了单目初始化外，其他关键帧在创建时并没有建立新的地图点。
                                                             // 在 CreateNewMapPoints 函数中，再一次对单目初始化的两个关键帧寻找新的地图点。然后三角化新的地图点。
-                                        // 需要注意的是，这里还会发生的情况是：当前正在处理的关键帧，在跟踪线程中已经有对应的地图点了。但是在局部建图线程中的
-                                        // SearchInNeighbors() 函数，有些比较早的地图点会被新的地图点替换。所以这里即使后出现的关键帧，也会包含了一些最近建立的地图点。！！！
-                                        // 这也是为什么除了单目初始化外的2次。其他时候仍然会执行进入这里的原因！！！！！
                 }
             }
         }
     }
+//    std::cout << "ProcessNewKeyFrame end" << std::endl;
 
     // Update links in the Covisibility Graph
     mpCurrentKeyFrame->UpdateConnections(); // 因为地图点关联的关键帧会发生变化，所以此时共视图之间的权重也会发生变化，可能会增加新的共视关系！
@@ -186,13 +195,15 @@ void LocalMapping::ProcessNewKeyFrame()
     mpMap->AddKeyFrame(mpCurrentKeyFrame);  // 插入关键帧，这个对于单目和双目来说，最开始初始化的时候，已经将初始化的关键帧加入到这里来了。
                                             // 因为这个函数内部是 std::set::insert() 重复元素不会插入
 }
-// 对最近新增加的地图点进行冗余去除.这些点可能是错误的三角化的（由于一些伪数据关联(匹配)）。不好的点就会设为 bad flag。然后在 mlpRecentAddedMapPoints 中擦除。
-// 对于没有满足一定要擦除的条件，该地图点就会保留在 mlpRecentAddedMapPoints 中，然后下次在检验。直到满足成为好的地图点。才会在这个变量中擦除（但是不设置 bad flag）
-// 成为好点的条件：满足地图点经过了 4 个关键帧，仍然没有被标记 bad flag。
-//    这些地图点为什么会变为坏点或者说为什么要被剔除，其实还有下面条件
-//        1）关键帧剔除函数，会把不好的关键帧剔除。导致对应的地图点的 observation obs 都会减少。使得地图点被关键帧观测次数下降
-//    除了在这里一些地图点被剔除外，其实在局部 BA 优化时，不好的地图点也会被剔除。
-//  这些策略，作为剔除一些不良地图点。
+
+//! \brief 对最近新增加的地图点进行冗余去除.
+//! 这些点可能是错误的三角化的（由于一些伪数据关联(匹配)）。不好的点就会设为 bad flag。然后在 mlpRecentAddedMapPoints 中擦除。
+//! 对于没有满足一定要擦除的条件，该地图点就会保留在 mlpRecentAddedMapPoints 中，然后下次在检验。直到满足成为好的地图点。才会在这个变量中擦除（但是不设置 bad flag）
+//! 成为好点的条件：满足地图点经过了 4 个关键帧，仍然没有被标记 bad flag。
+//!    这些地图点为什么会变为坏点或者说为什么要被剔除，其实还有下面条件
+//!        1）关键帧剔除函数，会把不好的关键帧剔除。导致对应的地图点的 observation obs 都会减少。使得地图点被关键帧观测次数下降
+//!    除了在这里一些地图点被剔除外，其实在局部 BA 优化时，不好的地图点也会被剔除。
+//!  这些策略，作为剔除一些不良地图点。
 void LocalMapping::MapPointCulling()
 {
     // Check Recent Added MapPoints
@@ -229,13 +240,16 @@ void LocalMapping::MapPointCulling()
             lit++; // 对于这种情况，说明这个地图点不满足必须擦除的条件。那么就会在这里保留。然后经过下次再次检验。直到满足条件为止
     }
 }
-// 当前正在处理的关键帧在共视图中找到其对应的临近关键帧组。把临近关键帧组中的每个关键帧和当前正在处理的关键帧，对他们进行匹配（因为两个关键帧的位姿已知），
-// 在他们中找到没有匹配上地图点的关键点，尝试找到这些关键点之间的匹配。 之后对这些匹配点对进行三角化，获得新的地图点。（会有一系列检测，比如深度值为正，重投影误差满足阈值条件）
-// 把新的地图点和对应的两个关键帧之间进行关联 AddObservation()。更新地图点平均 Normal 向量，以及将新的地图点加入到 mlpRecentAddedMapPoints 这个变量中。
-// （下次会在 MapPointCulling 中把不符合要求的地图点给剔除掉）
-//   对于单目来说。在初始化阶段。一下子加入了两个关键帧。因为在处理完第二个关键帧后，这里可能三角化了新的地图点（也可能没有新的地图点加入）。然后就退出。
-// 再次处理第一个关键帧。那么第一个关键帧就会有新的地图点.然后进行关键这和地图点之间的关联。
-//    需要注意的是：这里的地图点的 mnFirstKFid 就是当前局部建图线程正在处理的关键帧的 Id
+
+//! \details
+//! 1) 找到更多的匹配：当前正在处理的关键帧在共视图中找到其对应的共视点多的临近关键帧组。把临近关键帧组中的每个关键帧和当前正在处理的关键帧，对他们进行匹配（因为两个关键帧的位姿已知），
+//!     在他们中找到没有匹配上地图点的关键点，尝试找到这些关键点之间的匹配。
+//! 2) 三角化新的地图点：对这些匹配点对进行三角化，获得新的地图点。（会有一系列检测，比如深度值为正，重投影误差满足阈值条件）
+//! 把新的地图点和对应的两个关键帧之间进行关联 AddObservation()。更新地图点平均 Normal 向量，以及将新的地图点加入到 mlpRecentAddedMapPoints 这个变量中。
+//! （下次会在 MapPointCulling 中把不符合要求的地图点给剔除掉）
+//!   对于单目来说。在初始化阶段。一下子加入了两个关键帧。因为在处理完第二个关键帧后，这里可能三角化了新的地图点（也可能没有新的地图点加入）。然后就退出。
+//! 再次处理第一个关键帧。那么第一个关键帧就会有新的地图点.然后进行关键帧和地图点之间的关联。
+//!    需要注意的是：这里的地图点的 mnFirstKFid 就是当前局部建图线程正在处理的关键帧的 Id
 void LocalMapping::CreateNewMapPoints()
 {
     // Retrieve neighbor keyframes in covisibility graph
@@ -286,9 +300,9 @@ void LocalMapping::CreateNewMapPoints()
         else // 单目 深度不确定
         {
             const float medianDepthKF2 = pKF2->ComputeSceneMedianDepth(2);
-            const float ratioBaselineDepth = baseline/medianDepthKF2; // 基线/中位数深度  比值！作用？？？？
+            const float ratioBaselineDepth = baseline/medianDepthKF2; // 基线/中位数深度  比值！作用？？？？：如下
 
-            if(ratioBaselineDepth<0.01) // 是不是说明两帧之间距离太近，导致后面三角化的误差很大？？应该是，但是这个比例值如何确定是 0.01???
+            if(ratioBaselineDepth<0.01) // 说明两帧之间距离太近，或者地图点太远，导致后面三角化的误差很大？？:应该是，但是这个比例值如何确定是 0.01???
                 continue;
         }
 
@@ -333,9 +347,9 @@ void LocalMapping::CreateNewMapPoints()
             cv::Mat xn1 = (cv::Mat_<float>(3,1) << (kp1.pt.x-cx1)*invfx1, (kp1.pt.y-cy1)*invfy1, 1.0);
             cv::Mat xn2 = (cv::Mat_<float>(3,1) << (kp2.pt.x-cx2)*invfx2, (kp2.pt.y-cy2)*invfy2, 1.0);
 
-            cv::Mat ray1 = Rwc1*xn1; // 世界坐标系下的，为什么不加上平移向量？？
+            cv::Mat ray1 = Rwc1*xn1; // 世界坐标系下的，为什么不加上平移向量？？：这里默认了两个帧之间的尺度是一致的。所以用归一化平面坐标变换到世界，即可计算夹角
             cv::Mat ray2 = Rwc2*xn2;
-            const float cosParallaxRays = ray1.dot(ray2)/(cv::norm(ray1)*cv::norm(ray2)); // 与之前计算视差时不同，这里没有利用平移信息，不知道为什么？？？？
+            const float cosParallaxRays = ray1.dot(ray2)/(cv::norm(ray1)*cv::norm(ray2));
 
             float cosParallaxStereo = cosParallaxRays+1; // [0,2]
             float cosParallaxStereo1 = cosParallaxStereo;
@@ -349,7 +363,8 @@ void LocalMapping::CreateNewMapPoints()
             cosParallaxStereo = min(cosParallaxStereo1,cosParallaxStereo2); // 对单目来说这里不变，都是 cosParallaxRays + 1
 
             cv::Mat x3D; // 三角化的新的地图点（世界坐标系下的）
-            // 对于单目来说，表明视差角 cos 角度在 0-90 270-360 ，此时条件为真。为什么要设定这种条件？？？ 这种为什么代表视差高？？
+
+            // 对于单目来说，表明视差角 cos 角度在 0-180 ，此时条件为真。为什么要设定这种条件？？？ 这种为什么代表视差高？？
             if(cosParallaxRays<cosParallaxStereo && cosParallaxRays>0 && (bStereo1 || bStereo2 || cosParallaxRays<0.9998))
             {   // 三角化匹配的关键点得到新的地图点
                 // Linear Triangulation Method
@@ -371,11 +386,11 @@ void LocalMapping::CreateNewMapPoints()
                 x3D = x3D.rowRange(0,3)/x3D.at<float>(3); // 求出真正的 3x1 欧式坐标，这个是世界坐标系下的坐标点
 
             }
-            else if(bStereo1 && cosParallaxStereo1<cosParallaxStereo2)
+            else if(bStereo1 && cosParallaxStereo1<cosParallaxStereo2) // 单目不执行
             {
                 x3D = mpCurrentKeyFrame->UnprojectStereo(idx1);                
             }
-            else if(bStereo2 && cosParallaxStereo2<cosParallaxStereo1)
+            else if(bStereo2 && cosParallaxStereo2<cosParallaxStereo1) // 单目不执行
             {
                 x3D = pKF2->UnprojectStereo(idx2);
             }
@@ -461,6 +476,7 @@ void LocalMapping::CreateNewMapPoints()
 
             /*if(fabs(ratioDist-ratioOctave)>ratioFactor)
                 continue;*/
+            // 这里是说，在理想情况下， ratioDist == ratio
             if(ratioDist*ratioFactor<ratioOctave || ratioDist>ratioOctave*ratioFactor) // 这个又是什么？？？
                 continue;
 
@@ -472,6 +488,7 @@ void LocalMapping::CreateNewMapPoints()
             pMP->AddObservation(pKF2,idx2);
             mpCurrentKeyFrame->AddMapPoint(pMP,idx1); // 新增加当前关键帧对应的地图点。这个关键点是之前挑选出来的没有对应地图点的
             pKF2->AddMapPoint(pMP,idx2);
+
             // 这里应该更新一下 pKF2->UpdateCovilibility() 函数？？？？？？方便追踪线程 TrackLocalMap() 函数使用最新的临近关键帧集
             pMP->ComputeDistinctiveDescriptors(); // 计算地图点代表性的描述子，为后期匹配做准备
 
@@ -484,10 +501,13 @@ void LocalMapping::CreateNewMapPoints()
         } // end for  Triangulate each match
     } // end for Search matches
 }
-// 1、将当前处理的关键帧对应的地图点与其指定个数的临近关键帧进行融合（投影到临近关键帧图像坐标系）。找到临近关键帧新的地图点匹配关系。更新地图点信息
-// 2、将临近关键帧所有地图点与当前正在处理的关键帧进行融合。更新当前正在处理的关键帧的地图点匹配关系。
-//    因为当前正在处理的关键帧匹配的地图点发生变化(有些原来关键帧对应的地图点被新的地图点替换了)。所以需要更新一下共视图。以及对应的地图点描述子、normal 向量都会更新下
-//    需要注意：在下面会调用 Fuse() 函数。该函数中会把地图点进行一部分更新。所以调用一次。那么相应关键帧匹配的地图点就可能会发生变化。
+
+//! \details
+//! 1、将当前处理的关键帧对应的地图点与其指定个数的临近关键帧进行融合（投影到临近关键帧图像坐标系）。找到临近关键帧新的地图点匹配关系。更新地图点信息
+//! 2、将临近关键帧所有地图点与当前正在处理的关键帧进行融合。更新当前正在处理的关键帧的地图点匹配关系。
+//! \note   因为当前正在处理的关键帧匹配的地图点发生变化(有些原来关键帧对应的地图点被新的地图点替换了)。所以需要更新一下共视图。以及对应的地图点描述子、normal 向量都会更新下
+//!    需要注意：在下面会调用 Fuse() 函数。该函数中会把地图点进行一部分更新。所以调用一次。那么相应关键帧匹配的地图点就可能会发生变化。
+//! 目的是为了找到跟多的匹配点对。让关键帧对应更多的地图点。为后面的闭环检测、局部地图优化提供更多的约束。
 void LocalMapping::SearchInNeighbors()
 {
     // Retrieve neighbor keyframes
@@ -496,6 +516,7 @@ void LocalMapping::SearchInNeighbors()
         nn=20;
     const vector<KeyFrame*> vpNeighKFs = mpCurrentKeyFrame->GetBestCovisibilityKeyFrames(nn);
     vector<KeyFrame*> vpTargetKFs;
+
     // 找到当前关键帧对应的最好的临近关键帧。
     for(vector<KeyFrame*>::const_iterator vit=vpNeighKFs.begin(), vend=vpNeighKFs.end(); vit!=vend; vit++)
     {
@@ -571,6 +592,7 @@ void LocalMapping::SearchInNeighbors()
     // Update connections in covisibility graph
     mpCurrentKeyFrame->UpdateConnections(); // 此时上面与 mpCurrentKeyFrame 链接的共视图中的其他关键帧都还没有进行更新链接关系
 }
+
 // 通过两个关键帧之间的 Pose。计算两个关键帧之间的基础矩阵 F12
 cv::Mat LocalMapping::ComputeF12(KeyFrame *&pKF1, KeyFrame *&pKF2)
 {
@@ -591,6 +613,7 @@ cv::Mat LocalMapping::ComputeF12(KeyFrame *&pKF1, KeyFrame *&pKF2)
 
     return K1.t().inv()*t12x*R12*K2.inv(); // 这里是检查对极约束 t^R 利用 14 讲书上的对极约束部分即可得到
 }
+
 // 请求停止局部建图线程。在定位模式时，会调用这个函数来停止局部建图线程。在闭环检测线程中 CorrectLoop() 中，
 // 避免在闭环线程中插入新的关键帧。还有在闭环线程中。跑全局的 BA 优化时。都会请求停止当前的局部建图线程
 void LocalMapping::RequestStop()
@@ -643,12 +666,14 @@ void LocalMapping::Release()
 
     cout << "Local Mapping RELEASE" << endl;
 }
+
 // 是否接受关键帧, true: 表示局部建图线程不繁忙
 bool LocalMapping::AcceptKeyFrames()
 {
     unique_lock<mutex> lock(mMutexAccept);
     return mbAcceptKeyFrames;
 }
+
 // flag = true; 表示当前局部建图能够接受关键帧(在追踪线程中需要使用这个变量，判断是否需要新建立关键帧)。
 // flag = false; 局部建图不接收关键帧
 void LocalMapping::SetAcceptKeyFrames(bool flag)
@@ -656,8 +681,9 @@ void LocalMapping::SetAcceptKeyFrames(bool flag)
     unique_lock<mutex> lock(mMutexAccept);
     mbAcceptKeyFrames=flag;
 }
+
 // flag = true，此时如果 mbStopped = true，则表示停止了当前线程。此时设置失败！返回 false
-//    flag = false. 此时设定当线程可以停止。返回 true 。设置成功！
+// flag = false. 此时设定当线程可以停止。返回 true 。设置成功！
 bool LocalMapping::SetNotStop(bool flag)
 {
     unique_lock<mutex> lock(mMutexStop);
@@ -674,12 +700,13 @@ void LocalMapping::InterruptBA()
 {
     mbAbortBA = true;
 }
-// 参考论文 VI LOCAL MAPPING E 部分
-// 在当前关键帧对应的局部关键帧集中，剔除冗余的关键帧。当前关键帧此时不会被剔除。
-//    冗余关键帧：在这个关键帧观测的地图点中。有些地图点能够被其他关键帧观测到。对于其中一个地图点来说，该地图点在其他关键帧上对应的金字塔层数比较好。
-//              如果比较好的次数大于等于 3，也就是对应至少 3 个其他关键帧能比较好的观测到这个地图点。那么这个关键帧对于该地图点来说是冗余的，
-//              此时冗余变量 nRedundantObservations++。对当前关键帧观测的地图点都做这个测试。最后如果这个冗余变量 > 0.9*总有效的地图点个数
-//              说明当前这个关键帧对所有观测的地图点来说就是冗余的。那么最后会剔除这个关键帧。
+
+//! \see 参考论文 VI LOCAL MAPPING E 部分
+//! \brief 在当前关键帧对应的局部关键帧集中，剔除冗余的关键帧。当前关键帧此时不会被剔除。
+//! \note 冗余关键帧：在这个关键帧观测的地图点中。有些地图点能够被其他关键帧观测到。对于其中一个地图点来说，该地图点在其他关键帧上对应的金字塔层数比较好。
+//!                 如果比较好的次数大于等于 3，也就是对应至少 3 个其他关键帧能比较好的观测到这个地图点。那么这个关键帧对于该地图点来说是冗余的，
+//!                 此时冗余变量 nRedundantObservations++。对当前关键帧观测的地图点都做这个测试。最后如果这个冗余变量 > 0.9*总有效的地图点个数
+//!                 说明当前这个关键帧对所有观测的地图点来说就是冗余的。那么最后会剔除这个关键帧。
 void LocalMapping::KeyFrameCulling()
 {
     // Check redundant keyframes (only local keyframes)
@@ -745,6 +772,7 @@ void LocalMapping::KeyFrameCulling()
             pKF->SetBadFlag(); // 清理与当前关键帧相关的联系和资源
     }
 }
+
 // 返回平移向量 t 的反对称矩阵
 cv::Mat LocalMapping::SkewSymmetricMatrix(const cv::Mat &v)
 {
@@ -752,6 +780,7 @@ cv::Mat LocalMapping::SkewSymmetricMatrix(const cv::Mat &v)
             v.at<float>(2),               0,-v.at<float>(0),
             -v.at<float>(1),  v.at<float>(0),              0);
 }
+
 // 在系统重置时，需要调用的。该函数在之宗线程中重置系统时调用的
 void LocalMapping::RequestReset()
 {
@@ -781,12 +810,14 @@ void LocalMapping::ResetIfRequested()
         mbResetRequested=false;
     }
 }
+
 // 在整个系统执行完毕时，才会请求完成，然后结束当前局部建图线程
 void LocalMapping::RequestFinish()
 {
     unique_lock<mutex> lock(mMutexFinish);
     mbFinishRequested = true;
 }
+
 // 检查当前局部建图线程是否请求完成
 bool LocalMapping::CheckFinish()
 {

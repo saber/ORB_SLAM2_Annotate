@@ -43,6 +43,8 @@ class KeyFrameDatabase;
 class KeyFrame
 {
 public:
+    // 设定一个是否被剔除的变量
+    bool keyframe_culling_ = false; // 自己为了验证剔除的关键帧还会不会优化，暂时没有验证成功。数据集时，闭环无法起作用
     KeyFrame(Frame &F, Map* pMap, KeyFrameDatabase* pKFDB);
 
     // Pose functions
@@ -121,7 +123,7 @@ public:
 public:
 
     static long unsigned int nNextId; // init = 0
-    long unsigned int mnId; // 当前关键帧 id (与 Frame id 不同 )（永远不会改变，即使有些关键帧会被剔除，但是剩下的关键帧 id 不会更新！）
+    long unsigned int mnId; // 当前关键帧 id (与 Frame id 不同 )（且永远不会改变，即使有些关键帧会被剔除，但是剩下的关键帧 id 不会更新！）
     const long unsigned int mnFrameId; // Frame 转换为 keyframe 时所带 frame 的标号
 
     const double mTimeStamp; // frame 转换为 keyframe 所带的时间戳
@@ -172,7 +174,7 @@ public:
 
     //BoW 需要由一副图像的描述子转换 (在单目初始化时构造的关键帧这里都为空)
     DBoW2::BowVector mBowVec;   // 词袋向量   std::map<WordId, WordValue>: WordId: 字典 id (叶子节点)，WordValue: 指定的权重！
-    DBoW2::FeatureVector mFeatVec;  // 特征向量 std::map<NodeId, std::vector<unsigned int> >对象，NodeId: 指定层的某个节点 id，vector<>存储的是对应的描述子标号
+    DBoW2::FeatureVector mFeatVec;  // 用到了 第 4 层的所有树节点，特征向量 std::map<NodeId, std::vector<unsigned int> >对象，NodeId: 指定层的某个节点 id，vector<>存储的是对应的描述子标号
                                     // 是按照节点 id 的小到大的顺序来存储的
     // Pose relative to parent (this is computed when bad flag is activated)
     cv::Mat mTcp; // 保留父关键帧到当前关键帧的变换，为什么要保留？:在保留轨迹的时候，虽然这个关键帧不要了。但是内存地址没有清理。后期还需要进行轨迹的保存

@@ -55,6 +55,7 @@ KeyFrame::KeyFrame(Frame &F, Map *pMap, KeyFrameDatabase *pKFDB):
 
     SetPose(F.mTcw);    
 }
+
 // 计算 Bow 向量
 void KeyFrame::ComputeBoW()
 {
@@ -63,7 +64,7 @@ void KeyFrame::ComputeBoW()
         vector<cv::Mat> vCurrentDesc = Converter::toDescriptorVector(mDescriptors);
         // Feature vector associate features with nodes in the 4th level (from leaves up)
         // We assume the vocabulary tree has 6 levels, change the 4 otherwise
-        // 将描述子转化为词袋向量和特征向量
+        // 将描述子转化为词袋向量和特征向量,这里选择 第 4 层特征向量
         mpORBvocabulary->transform(vCurrentDesc,mBowVec,mFeatVec,4);
     }
 }
@@ -120,7 +121,8 @@ cv::Mat KeyFrame::GetTranslation()
     unique_lock<mutex> lock(mMutexPose);    // 这种锁表示，获取同一个资源时，不同线程之间的锁定。
     return Tcw.rowRange(0,3).col(3).clone();    // 选取 4x4 矩阵，的平移部分：最后一列的前三行
 }
-// 增加当前关键帧和指定关键帧链接关系。并增加两个关键帧共视地图点个数！
+
+//! \brief 增加当前关键帧和指定关键帧链接关系。并增加两个关键帧共视地图点个数！
 //    pKF: 建立联系的关键帧
 //    weight: 权重，两关键帧之间共视地图点个数
 void KeyFrame::AddConnection(KeyFrame *pKF, const int &weight)
@@ -137,6 +139,7 @@ void KeyFrame::AddConnection(KeyFrame *pKF, const int &weight)
 
     UpdateBestCovisibles();
 }
+
 // 将共视关系按照权重，由小到大进行排序
 //    更新 mvpOrderedConnectedKeyFrames  mvOrderedWeights
 void KeyFrame::UpdateBestCovisibles()
@@ -159,6 +162,7 @@ void KeyFrame::UpdateBestCovisibles()
     mvpOrderedConnectedKeyFrames = vector<KeyFrame*>(lKFs.begin(),lKFs.end());
     mvOrderedWeights = vector<int>(lWs.begin(), lWs.end());
 }
+
 // 把与当前关键帧链接的所有关键帧返回。用 set<> 保存
 set<KeyFrame*> KeyFrame::GetConnectedKeyFrames()
 {
@@ -184,6 +188,7 @@ vector<KeyFrame*> KeyFrame::GetBestCovisibilityKeyFrames(const int &N)
         return vector<KeyFrame*>(mvpOrderedConnectedKeyFrames.begin(),mvpOrderedConnectedKeyFrames.begin()+N);
 
 }
+
 // 取出与当前关键帧共视地图点的备选关键帧。条件：共视地图点个数大于 > w
 vector<KeyFrame*> KeyFrame::GetCovisiblesByWeight(const int &w)
 {
@@ -201,6 +206,7 @@ vector<KeyFrame*> KeyFrame::GetCovisiblesByWeight(const int &w)
         return vector<KeyFrame*>(mvpOrderedConnectedKeyFrames.begin(), mvpOrderedConnectedKeyFrames.begin()+n);
     }
 }
+
 // 返回 pKF 关键帧，在共视图中与当前关键帧的共视强度
 int KeyFrame::GetWeight(KeyFrame *pKF)
 {
@@ -230,11 +236,12 @@ void KeyFrame::EraseMapPointMatch(MapPoint* pMP)
         mvpMapPoints[idx]=static_cast<MapPoint*>(NULL);
 }
 
-
+// 用 pMP 替换 idx 关键点对应的地图点
 void KeyFrame::ReplaceMapPointMatch(const size_t &idx, MapPoint* pMP)
 {
     mvpMapPoints[idx]=pMP;
 }
+
 // 获得当前关键帧关键点对应的所有有效的地图点
 set<MapPoint*> KeyFrame::GetMapPoints()
 {
@@ -250,6 +257,7 @@ set<MapPoint*> KeyFrame::GetMapPoints()
     }
     return s;
 }
+
 // 获取当前关键帧自己的地图点{与自己提取的关键点对应的}。符合该条件：被关键帧观测次数 >= minObs 的有多少个
 //  minObs > 0: 被观测次数 > minObs 的个数才算是被观测过
 //  minOBS <=0: 这种情况会发生吗？？？自己的地图点肯定是被自己观测过的？
@@ -279,23 +287,27 @@ int KeyFrame::TrackedMapPoints(const int &minObs)
 
     return nPoints;
 }
+
 // 获取当前关键帧所有关键点对应的有效地图点{因为有些关键点没有匹配上，有些关键点匹配上了，但是三角化没有成功}
 vector<MapPoint*> KeyFrame::GetMapPointMatches()
 {
     unique_lock<mutex> lock(mMutexFeatures);
     return mvpMapPoints;
 }
+
 // 获得指定地图点
 MapPoint* KeyFrame::GetMapPoint(const size_t &idx)
 {
     unique_lock<mutex> lock(mMutexFeatures);
     return mvpMapPoints[idx];
 }
-// 注意只要 mvpMapPoints 有变化且对应的地图点已经把该关键帧加入到 mObservations 中，那么就必须要调用这个来更新一下共视图
-// 记录与当前关键帧有共视关系的关键帧，以及共视强度(存在多少个共同观测的地图点),方法：根据 mvpMapPoints 地图点来做
-// 把当前关键帧包含的所有地图点拿来。然后地图点包含了一些关键帧。这样即可 记录与当前关键帧有共同观测的关键帧及其共同观测次数。
-// 这里把共同观测的地图点个数作为链接两个关键帧边的权重
-// 实际上在维护一个 Covisibility Graph 参考论文： III D
+
+//! \note 注意只要 mvpMapPoints 有变化且对应的地图点已经把该关键帧加入到 mObservations 中，那么就必须要调用这个来更新一下共视图
+//! \brief 记录与当前关键帧有共视关系的关键帧，以及共视强度(存在多少个共同观测的地图点),
+//! \details 根据 mvpMapPoints 地图点来做
+//! 把当前关键帧包含的所有地图点拿来。然后地图点包含了一些关键帧。这样即可 记录与当前关键帧有共同观测的关键帧及其共同观测次数。
+//! 这里把共同观测的地图点个数作为链接两个关键帧边的权重
+//! 实际上在维护一个 Covisibility Graph 参考论文： III D
 void KeyFrame::UpdateConnections()
 {
     map<KeyFrame*,int> KFcounter; // 记录与当前关键帧有共视关系的关键帧，以及共视强度(存在多少个共同观测的地图点)
@@ -431,7 +443,7 @@ bool KeyFrame::hasChild(KeyFrame *pKF)
 void KeyFrame::AddLoopEdge(KeyFrame *pKF)
 {
     unique_lock<mutex> lockCon(mMutexConnections);
-    mbNotErase = true; // 表示对于成功闭上环的关键帧，不能擦除。一致保留
+    mbNotErase = true; // 表示对于成功闭上环的关键帧，不能擦除。一直保留
     mspLoopEdges.insert(pKF);
 }
 
@@ -440,6 +452,7 @@ set<KeyFrame*> KeyFrame::GetLoopEdges()
     unique_lock<mutex> lockCon(mMutexConnections);
     return mspLoopEdges;
 }
+
 //! \brief 设置当前关键帧不能被擦除,如果当前关键帧是冗余的，此时局部建图线程也无法剔除该关键帧。
 //!        调用该函数有两种情况：
 //!         1）LoopClosing::DetectLoop() 闭环线程正在处理关键帧 mnCurrentKF 时，不能让局部建图线程删除闭环线程当前正在处理的关键帧
@@ -568,6 +581,7 @@ void KeyFrame::SetBadFlag()
 
     mpMap->EraseKeyFrame(this); // 在地图中擦除关键帧。但是关键帧内存没有释放
     mpKeyFrameDB->erase(this); // 在数据库中擦除当前关键帧。
+    keyframe_culling_ = true;
 }
 
 bool KeyFrame::isBad()
@@ -575,7 +589,8 @@ bool KeyFrame::isBad()
     unique_lock<mutex> lock(mMutexConnections);
     return mbBad;
 }
-// 取消当前关键帧和 pKF 关键帧之间在共视图上的链接关系。之后更新共视图
+
+// 取消当前关键帧和 pKF 关键帧之间在共视图上的链接关系。之后更新共视图(因为权重可能发生了变化)
 void KeyFrame::EraseConnection(KeyFrame* pKF)
 {
     bool bUpdate = false;
@@ -591,6 +606,7 @@ void KeyFrame::EraseConnection(KeyFrame* pKF)
     if(bUpdate)
         UpdateBestCovisibles(); // 擦除链接之后，需要更新一些共视图
 }
+
 // 在当前关键帧图像上以 (x,y) 为圆心。半径为 r 的范围内找到一些当前关键帧上的关键点(序号)，存储下来，就是潜在的匹配点。然后返回
 vector<size_t> KeyFrame::GetFeaturesInArea(const float &x, const float &y, const float &r) const
 {
@@ -632,6 +648,7 @@ vector<size_t> KeyFrame::GetFeaturesInArea(const float &x, const float &y, const
 
     return vIndices;
 }
+
 // 判断给定的坐标是否在当前关键帧图像坐标系上
 bool KeyFrame::IsInImage(const float &x, const float &y) const
 {
@@ -655,6 +672,7 @@ cv::Mat KeyFrame::UnprojectStereo(int i)
     else
         return cv::Mat();
 }
+
 // 计算当前帧所有 有效地图点(世界坐标)在当前相机坐标系下的深度值 z 。默认情况计算中位数深度
 float KeyFrame::ComputeSceneMedianDepth(const int q)
 {

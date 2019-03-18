@@ -32,7 +32,10 @@ namespace ORB_SLAM2
 FrameDrawer::FrameDrawer(Map* pMap):mpMap(pMap)
 {
     mState = Tracking::SYSTEM_NOT_READY;
-    mIm = cv::Mat(480,640,CV_8UC3, cv::Scalar(0,0,0)); // 对于不同摄像头，这里可能需要改变
+    mIm = cv::Mat(480,640,CV_8UC3, cv::Scalar(0,0,0));
+    // 对于不同摄像头，这里可能需要改变.
+    // 实际上这里不需要进行改变。因为在下面 Update() 时，已经用了 cv::Mat::CopyTo() 了
+    // 如果目标矩阵不符合要求，就会从新分配大小。
 }
 
 cv::Mat FrameDrawer::DrawFrame()
@@ -167,8 +170,8 @@ void FrameDrawer::DrawTextInfo(cv::Mat &im, int nState, cv::Mat &imText)
 void FrameDrawer::Update(Tracking *pTracker)
 {
     unique_lock<mutex> lock(mMutex);
-    pTracker->mImGray.copyTo(mIm);
-    mvCurrentKeys=pTracker->mCurrentFrame.mvKeys;
+    pTracker->mImGray.copyTo(mIm); // 会自动调节 mIm 的大小。根据 mImGray 的矩阵大小。
+    mvCurrentKeys=pTracker->mCurrentFrame.mvKeys; // 这里获得的是未去除畸变的关键点，是因为显示时会在原始图像上进行
     N = mvCurrentKeys.size();
     mvbVO = vector<bool>(N,false);
     mvbMap = vector<bool>(N,false);

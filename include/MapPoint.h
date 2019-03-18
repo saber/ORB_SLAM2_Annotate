@@ -39,6 +39,8 @@ class Frame;
 class MapPoint
 {
 public:
+    // 测试变量
+    bool mappoint_culling_ = false; // 用来验证删除的地图点会不会在优化时使用。
     MapPoint(const cv::Mat &Pos, KeyFrame* pRefKF, Map* pMap);
     MapPoint(const cv::Mat &Pos,  Map* pMap, Frame* pFrame, const int &idxF);
 
@@ -98,9 +100,9 @@ public:
     // c: 在函数内部初始匹配后是内点，但在优化过程中认为是外点。比如在TrackReferenceKeyFrame，TrackWithMotionModel 这两个函数中,有一个初始化匹配，
     //      然后内部调用了 PoseOptimization()优化
     // 上面的结果后，最后在 ORBmatcher::SearchByProjection() 函数内部进行判断这个变量。这个是 false 就跳过该点
-    bool mbTrackInView;
+    bool mbTrackInView; // 在追踪线程中是不是追踪到了。
     int mnTrackScaleLevel; // 当前地图点在当前追踪帧中对应第几层图像金字塔上
-    float mTrackViewCos; // 地图点与追踪帧光心得到的向量与跟踪帧(Mean viewing direction)的单位向量的 cos 夹角
+    float mTrackViewCos; // 地图点与追踪帧光心得到的向量与地图点平均观测向量(Mean viewing direction)的单位向量的 cos 夹角
     long unsigned int mnTrackReferenceForFrame; // init = 0 // 当前地图点在追踪 TrackLocalMap()时，可能被追踪帧观测到。这里记录那个追踪帧的 id 号
     long unsigned int mnLastFrameSeen; // init = 0 ,记录当前地图点上次是被哪个帧匹配过和观测过。这里记录那个 Frame 的 mnid
 
@@ -135,7 +137,8 @@ protected:
      cv::Mat mDescriptor; // 当前 mObservations 中，所有关键帧及其相应匹配的关键点描述子。计算两两描述子之间的距离。选择中位数距离最小的关键帧对应的描述子
                           // MapPoint::ComputeDistinctiveDescriptors() 函数赋值的。但是有什么意义？？？
      // Reference KeyFrame
-     KeyFrame* mpRefKF; // 在哪个关键帧三角化得到的点,单目初始化时，是在当前帧中被三角化的，保留的是当前帧(mnCurrentFrame)。
+     KeyFrame* mpRefKF; // 对应在哪个关键帧三角化得到的该点,单目初始化时，是在当前帧中被三角化的，保留的是当前帧(mnCurrentFrame)。
+                        // 还有在局部建图线程中创建新的地图点时然后指向当前正在处理的关键帧。
                         // 剩下的就是在 Optimizer.cc 中 LocalBundleAdjustment() 函数中调用  MapPoint::EraseObservation(KeyFrame* pKF) 来改变
 
      // Tracking counters 两个变量都是在 TrackingLocalMap() 中进行变化的！也就是需要经过一个追踪局部地图才能最后确定当前地图点的下面这个两个属性！
@@ -152,7 +155,8 @@ protected:
      MapPoint* mpReplaced; // init = NULL //  当前地图点被哪个地图点代替：什么时候会被代替？？？ 在 ORBmatcher.cc  Fuse() 函数中，
                            // 是因为两个地图点与某个关键帧关键点对应。然后选泽了被关键帧观测次数多的地图点与那个关键点对应
                            // 在 LoopClosing.cc 中 CorrectLoop() 函数中调用，SearchAndFuse()
-     // Scale invariance distances 这两个在  MapPoint::UpdateNormalAndDepth() 中更新，但是计算的方式不理解？？？
+
+     // Scale invariance distances 这两个在  MapPoint::UpdateNormalAndDepth() 中更新，
      float mfMinDistance; // init = 0 尺度不变距离
      float mfMaxDistance; // init = 0
 

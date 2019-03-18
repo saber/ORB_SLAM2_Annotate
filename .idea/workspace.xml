@@ -18,112 +18,18 @@
   </component>
   <component name="ChangeListManager">
     <list default="true" id="eef8f654-41d4-495b-a6de-73dcf2c46838" name="Default" comment="">
-      <change afterPath="$PROJECT_DIR$/.idea/ORB_SLAM2.iml" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/.idea/codeStyles/Project.xml" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/.idea/misc.xml" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/.idea/modules.xml" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/.idea/vcs.xml" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/cmake-build-debug/CMakeCache.txt" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/cmake-build-debug/CMakeFiles/3.10.3/CMakeCCompiler.cmake" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/cmake-build-debug/CMakeFiles/3.10.3/CMakeCXXCompiler.cmake" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/cmake-build-debug/CMakeFiles/3.10.3/CMakeDetermineCompilerABI_C.bin" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/cmake-build-debug/CMakeFiles/3.10.3/CMakeDetermineCompilerABI_CXX.bin" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/cmake-build-debug/CMakeFiles/3.10.3/CMakeSystem.cmake" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/cmake-build-debug/CMakeFiles/3.10.3/CompilerIdC/CMakeCCompilerId.c" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/cmake-build-debug/CMakeFiles/3.10.3/CompilerIdC/a.out" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/cmake-build-debug/CMakeFiles/3.10.3/CompilerIdCXX/CMakeCXXCompilerId.cpp" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/cmake-build-debug/CMakeFiles/3.10.3/CompilerIdCXX/a.out" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/cmake-build-debug/CMakeFiles/CMakeDirectoryInformation.cmake" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/cmake-build-debug/CMakeFiles/CMakeOutput.log" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/cmake-build-debug/CMakeFiles/Makefile.cmake" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/cmake-build-debug/CMakeFiles/Makefile2" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/cmake-build-debug/CMakeFiles/ORB_SLAM2.dir/DependInfo.cmake" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/cmake-build-debug/CMakeFiles/ORB_SLAM2.dir/build.make" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/cmake-build-debug/CMakeFiles/ORB_SLAM2.dir/cmake_clean.cmake" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/cmake-build-debug/CMakeFiles/ORB_SLAM2.dir/depend.make" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/cmake-build-debug/CMakeFiles/ORB_SLAM2.dir/flags.make" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/cmake-build-debug/CMakeFiles/ORB_SLAM2.dir/link.txt" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/cmake-build-debug/CMakeFiles/ORB_SLAM2.dir/progress.make" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/cmake-build-debug/CMakeFiles/TargetDirectories.txt" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/cmake-build-debug/CMakeFiles/clion-environment.txt" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/cmake-build-debug/CMakeFiles/clion-log.txt" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/cmake-build-debug/CMakeFiles/cmake.check_cache" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/cmake-build-debug/CMakeFiles/feature_tests.bin" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/cmake-build-debug/CMakeFiles/feature_tests.c" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/cmake-build-debug/CMakeFiles/feature_tests.cxx" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/cmake-build-debug/CMakeFiles/mono_euroc.dir/DependInfo.cmake" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/cmake-build-debug/CMakeFiles/mono_euroc.dir/build.make" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/cmake-build-debug/CMakeFiles/mono_euroc.dir/cmake_clean.cmake" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/cmake-build-debug/CMakeFiles/mono_euroc.dir/depend.make" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/cmake-build-debug/CMakeFiles/mono_euroc.dir/flags.make" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/cmake-build-debug/CMakeFiles/mono_euroc.dir/link.txt" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/cmake-build-debug/CMakeFiles/mono_euroc.dir/progress.make" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/cmake-build-debug/CMakeFiles/mono_kitti.dir/DependInfo.cmake" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/cmake-build-debug/CMakeFiles/mono_kitti.dir/build.make" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/cmake-build-debug/CMakeFiles/mono_kitti.dir/cmake_clean.cmake" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/cmake-build-debug/CMakeFiles/mono_kitti.dir/depend.make" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/cmake-build-debug/CMakeFiles/mono_kitti.dir/flags.make" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/cmake-build-debug/CMakeFiles/mono_kitti.dir/link.txt" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/cmake-build-debug/CMakeFiles/mono_kitti.dir/progress.make" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/cmake-build-debug/CMakeFiles/mono_tum.dir/DependInfo.cmake" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/cmake-build-debug/CMakeFiles/mono_tum.dir/build.make" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/cmake-build-debug/CMakeFiles/mono_tum.dir/cmake_clean.cmake" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/cmake-build-debug/CMakeFiles/mono_tum.dir/depend.make" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/cmake-build-debug/CMakeFiles/mono_tum.dir/flags.make" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/cmake-build-debug/CMakeFiles/mono_tum.dir/link.txt" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/cmake-build-debug/CMakeFiles/mono_tum.dir/progress.make" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/cmake-build-debug/CMakeFiles/progress.marks" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/cmake-build-debug/CMakeFiles/rgbd_tum.dir/DependInfo.cmake" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/cmake-build-debug/CMakeFiles/rgbd_tum.dir/build.make" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/cmake-build-debug/CMakeFiles/rgbd_tum.dir/cmake_clean.cmake" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/cmake-build-debug/CMakeFiles/rgbd_tum.dir/depend.make" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/cmake-build-debug/CMakeFiles/rgbd_tum.dir/flags.make" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/cmake-build-debug/CMakeFiles/rgbd_tum.dir/link.txt" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/cmake-build-debug/CMakeFiles/rgbd_tum.dir/progress.make" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/cmake-build-debug/CMakeFiles/stereo_euroc.dir/DependInfo.cmake" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/cmake-build-debug/CMakeFiles/stereo_euroc.dir/build.make" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/cmake-build-debug/CMakeFiles/stereo_euroc.dir/cmake_clean.cmake" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/cmake-build-debug/CMakeFiles/stereo_euroc.dir/depend.make" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/cmake-build-debug/CMakeFiles/stereo_euroc.dir/flags.make" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/cmake-build-debug/CMakeFiles/stereo_euroc.dir/link.txt" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/cmake-build-debug/CMakeFiles/stereo_euroc.dir/progress.make" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/cmake-build-debug/CMakeFiles/stereo_kitti.dir/DependInfo.cmake" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/cmake-build-debug/CMakeFiles/stereo_kitti.dir/build.make" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/cmake-build-debug/CMakeFiles/stereo_kitti.dir/cmake_clean.cmake" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/cmake-build-debug/CMakeFiles/stereo_kitti.dir/depend.make" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/cmake-build-debug/CMakeFiles/stereo_kitti.dir/flags.make" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/cmake-build-debug/CMakeFiles/stereo_kitti.dir/link.txt" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/cmake-build-debug/CMakeFiles/stereo_kitti.dir/progress.make" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/cmake-build-debug/Makefile" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/cmake-build-debug/ORB_SLAM2.cbp" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/cmake-build-debug/cmake_install.cmake" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/Dependencies.md" beforeDir="false" afterPath="$PROJECT_DIR$/Dependencies.md" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/Examples/Monocular/TUM1.yaml" beforeDir="false" afterPath="$PROJECT_DIR$/Examples/Monocular/TUM1.yaml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/Examples/Monocular/mono_tum.cc" beforeDir="false" afterPath="$PROJECT_DIR$/Examples/Monocular/mono_tum.cc" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/Examples/RGB-D/TUM1.yaml" beforeDir="false" afterPath="$PROJECT_DIR$/Examples/RGB-D/TUM1.yaml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/Examples/Stereo/KITTI03.yaml" beforeDir="false" afterPath="$PROJECT_DIR$/Examples/Stereo/KITTI03.yaml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/Thirdparty/DBoW2/DBoW2/BowVector.h" beforeDir="false" afterPath="$PROJECT_DIR$/Thirdparty/DBoW2/DBoW2/BowVector.h" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/Thirdparty/DBoW2/DBoW2/FeatureVector.cpp" beforeDir="false" afterPath="$PROJECT_DIR$/Thirdparty/DBoW2/DBoW2/FeatureVector.cpp" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/Thirdparty/DBoW2/DBoW2/TemplatedVocabulary.h" beforeDir="false" afterPath="$PROJECT_DIR$/Thirdparty/DBoW2/DBoW2/TemplatedVocabulary.h" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/include/Converter.h" beforeDir="false" afterPath="$PROJECT_DIR$/include/Converter.h" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/include/Frame.h" beforeDir="false" afterPath="$PROJECT_DIR$/include/Frame.h" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/include/FrameDrawer.h" beforeDir="false" afterPath="$PROJECT_DIR$/include/FrameDrawer.h" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/include/Initializer.h" beforeDir="false" afterPath="$PROJECT_DIR$/include/Initializer.h" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/include/KeyFrame.h" beforeDir="false" afterPath="$PROJECT_DIR$/include/KeyFrame.h" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/include/KeyFrameDatabase.h" beforeDir="false" afterPath="$PROJECT_DIR$/include/KeyFrameDatabase.h" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/include/LocalMapping.h" beforeDir="false" afterPath="$PROJECT_DIR$/include/LocalMapping.h" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/include/LoopClosing.h" beforeDir="false" afterPath="$PROJECT_DIR$/include/LoopClosing.h" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/include/Map.h" beforeDir="false" afterPath="$PROJECT_DIR$/include/Map.h" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/include/MapDrawer.h" beforeDir="false" afterPath="$PROJECT_DIR$/include/MapDrawer.h" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/include/MapPoint.h" beforeDir="false" afterPath="$PROJECT_DIR$/include/MapPoint.h" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/include/ORBextractor.h" beforeDir="false" afterPath="$PROJECT_DIR$/include/ORBextractor.h" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/include/ORBmatcher.h" beforeDir="false" afterPath="$PROJECT_DIR$/include/ORBmatcher.h" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/include/PnPsolver.h" beforeDir="false" afterPath="$PROJECT_DIR$/include/PnPsolver.h" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/include/Sim3Solver.h" beforeDir="false" afterPath="$PROJECT_DIR$/include/Sim3Solver.h" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/include/System.h" beforeDir="false" afterPath="$PROJECT_DIR$/include/System.h" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/include/Tracking.h" beforeDir="false" afterPath="$PROJECT_DIR$/include/Tracking.h" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/include/Viewer.h" beforeDir="false" afterPath="$PROJECT_DIR$/include/Viewer.h" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/src/Converter.cc" beforeDir="false" afterPath="$PROJECT_DIR$/src/Converter.cc" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/src/Frame.cc" beforeDir="false" afterPath="$PROJECT_DIR$/src/Frame.cc" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/src/FrameDrawer.cc" beforeDir="false" afterPath="$PROJECT_DIR$/src/FrameDrawer.cc" afterDir="false" />
@@ -138,11 +44,8 @@
       <change beforePath="$PROJECT_DIR$/src/ORBextractor.cc" beforeDir="false" afterPath="$PROJECT_DIR$/src/ORBextractor.cc" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/src/ORBmatcher.cc" beforeDir="false" afterPath="$PROJECT_DIR$/src/ORBmatcher.cc" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/src/Optimizer.cc" beforeDir="false" afterPath="$PROJECT_DIR$/src/Optimizer.cc" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/PnPsolver.cc" beforeDir="false" afterPath="$PROJECT_DIR$/src/PnPsolver.cc" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/src/Sim3Solver.cc" beforeDir="false" afterPath="$PROJECT_DIR$/src/Sim3Solver.cc" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/System.cc" beforeDir="false" afterPath="$PROJECT_DIR$/src/System.cc" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/src/Tracking.cc" beforeDir="false" afterPath="$PROJECT_DIR$/src/Tracking.cc" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/Viewer.cc" beforeDir="false" afterPath="$PROJECT_DIR$/src/Viewer.cc" afterDir="false" />
     </list>
     <ignored path="$PROJECT_DIR$/cmake-build-debug/" />
     <option name="EXCLUDED_CONVERTED_TO_IGNORED" value="true" />
@@ -155,23 +58,29 @@
   <component name="ExecutionTargetManager" SELECTED_TARGET="CMakeBuildProfile:Debug" />
   <component name="FileEditorManager">
     <leaf SIDE_TABS_SIZE_LIMIT_KEY="300">
-      <file leaf-file-name="Tracking.cc" pinned="false" current-in-tab="false">
-        <entry file="file://$PROJECT_DIR$/src/Tracking.cc">
+      <file leaf-file-name="LoopClosing.cc" pinned="false" current-in-tab="true">
+        <entry file="file://$PROJECT_DIR$/src/LoopClosing.cc">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="320">
-              <caret line="658" column="36" selection-start-line="658" selection-start-column="26" selection-end-line="658" selection-end-column="36" />
-              <folding>
-                <element signature="e#829#850#0" expanded="true" />
-              </folding>
+            <state relative-caret-position="86">
+              <caret line="534" lean-forward="true" selection-start-line="534" selection-end-line="534" />
             </state>
           </provider>
         </entry>
       </file>
-      <file leaf-file-name="Initializer.cc" pinned="false" current-in-tab="true">
-        <entry file="file://$PROJECT_DIR$/src/Initializer.cc">
+      <file leaf-file-name="LoopClosing.h" pinned="false" current-in-tab="false">
+        <entry file="file://$PROJECT_DIR$/include/LoopClosing.h">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="86">
-              <caret line="381" lean-forward="true" selection-start-line="381" selection-end-line="381" />
+            <state relative-caret-position="356">
+              <caret line="94" column="20" selection-start-line="94" selection-start-column="9" selection-end-line="94" selection-end-column="20" />
+            </state>
+          </provider>
+        </entry>
+      </file>
+      <file leaf-file-name="LocalMapping.cc" pinned="false" current-in-tab="false">
+        <entry file="file://$PROJECT_DIR$/src/LocalMapping.cc">
+          <provider selected="true" editor-type-id="text-editor">
+            <state relative-caret-position="260">
+              <caret line="193" column="29" lean-forward="true" selection-start-line="193" selection-start-column="29" selection-end-line="193" selection-end-column="29" />
             </state>
           </provider>
         </entry>
@@ -180,31 +89,36 @@
   </component>
   <component name="FindInProjectRecents">
     <findStrings>
-      <find>FORB</find>
-      <find>join</find>
-      <find>mvkeys</find>
-      <find>mvKeysUn</find>
-      <find>mDistCoef</find>
-      <find>return</find>
-      <find>Wrong initialization, reseting...</find>
-      <find>Reset</find>
-      <find>reset</find>
-      <find>ope</find>
-      <find>IC_</find>
-      <find>angle</find>
-      <find>operator</find>
-      <find>create</find>
-      <find>mVelocity</find>
-      <find>Create</find>
-      <find>size</find>
-      <find>mnW</find>
-      <find>TrackLo</find>
-      <find>clearQuadraticForm</find>
-      <find>SetNotErase</find>
-      <find>SetErase</find>
-      <find>GetNormal</find>
-      <find>run</find>
-      <find>clear</find>
+      <find>mvbPrevMatched</find>
+      <find>g2o::EdgeSt</find>
+      <find>g2o::EdgeSim3</find>
+      <find>setFixed</find>
+      <find>ComputeSceneMe</find>
+      <find>TrackedMapPoints</find>
+      <find>PoseOptimization</find>
+      <find>TrackWithMotionModel</find>
+      <find>Tracking::NeedNewKeyFrame</find>
+      <find>Tracking::TrackLocalM</find>
+      <find>DrawKeyFrames</find>
+      <find>LocalMapping::Proce</find>
+      <find>SearchForT</find>
+      <find>kp2</find>
+      <find>CreateNewM</find>
+      <find>Replace()</find>
+      <find>LocalBundleAdju</find>
+      <find>Inform</find>
+      <find>Fuse</find>
+      <find>SearchBySim3</find>
+      <find>Correct</find>
+      <find>start Loo</find>
+      <find>OptimizeEssentialG</find>
+      <find>RunGlob</find>
+      <find>SearchByP</find>
+      <find>Sim3Solver</find>
+      <find>Sim3Solver(</find>
+      <find>LocalB</find>
+      <find>setRobustKernel</find>
+      <find>Conn</find>
     </findStrings>
   </component>
   <component name="Git.Settings">
@@ -215,45 +129,46 @@
       <list>
         <option value="$PROJECT_DIR$/include/Converter.h" />
         <option value="$PROJECT_DIR$/Examples/Monocular/mono_tum.cc" />
-        <option value="$PROJECT_DIR$/include/ORBextractor.h" />
-        <option value="$PROJECT_DIR$/src/ORBextractor.cc" />
-        <option value="$PROJECT_DIR$/include/Initializer.h" />
-        <option value="$PROJECT_DIR$/include/ORBmatcher.h" />
         <option value="$PROJECT_DIR$/Thirdparty/DBoW2/DBoW2/BowVector.h" />
-        <option value="$PROJECT_DIR$/Thirdparty/DBoW2/DBoW2/TemplatedVocabulary.h" />
         <option value="$PROJECT_DIR$/Thirdparty/DBoW2/DBoW2/FeatureVector.cpp" />
-        <option value="$PROJECT_DIR$/src/Frame.cc" />
-        <option value="$PROJECT_DIR$/include/Frame.h" />
         <option value="$PROJECT_DIR$/include/MapDrawer.h" />
-        <option value="$PROJECT_DIR$/include/Tracking.h" />
-        <option value="$PROJECT_DIR$/src/MapDrawer.cc" />
-        <option value="$PROJECT_DIR$/include/FrameDrawer.h" />
-        <option value="$PROJECT_DIR$/src/FrameDrawer.cc" />
         <option value="$PROJECT_DIR$/include/Viewer.h" />
         <option value="$PROJECT_DIR$/src/System.cc" />
-        <option value="$PROJECT_DIR$/src/Viewer.cc" />
         <option value="$PROJECT_DIR$/include/LocalMapping.h" />
         <option value="$PROJECT_DIR$/include/System.h" />
         <option value="$PROJECT_DIR$/include/KeyFrameDatabase.h" />
-        <option value="$PROJECT_DIR$/src/Initializer.cc" />
-        <option value="$PROJECT_DIR$/include/Sim3Solver.h" />
-        <option value="$PROJECT_DIR$/src/Converter.cc" />
-        <option value="$PROJECT_DIR$/src/MapPoint.cc" />
         <option value="$PROJECT_DIR$/include/Map.h" />
-        <option value="$PROJECT_DIR$/include/MapPoint.h" />
-        <option value="$PROJECT_DIR$/src/Map.cc" />
-        <option value="$PROJECT_DIR$/src/LocalMapping.cc" />
-        <option value="$PROJECT_DIR$/include/KeyFrame.h" />
-        <option value="$PROJECT_DIR$/src/KeyFrame.cc" />
-        <option value="$PROJECT_DIR$/src/KeyFrameDatabase.cc" />
+        <option value="$PROJECT_DIR$/include/PnPsolver.h" />
+        <option value="$PROJECT_DIR$/src/PnPsolver.cc" />
+        <option value="$PROJECT_DIR$/src/Converter.cc" />
+        <option value="$PROJECT_DIR$/src/FrameDrawer.cc" />
+        <option value="$PROJECT_DIR$/include/FrameDrawer.h" />
+        <option value="$PROJECT_DIR$/include/Frame.h" />
+        <option value="$PROJECT_DIR$/CMakeLists.txt" />
+        <option value="$PROJECT_DIR$/src/Viewer.cc" />
+        <option value="$PROJECT_DIR$/include/Initializer.h" />
+        <option value="$PROJECT_DIR$/include/ORBextractor.h" />
         <option value="$PROJECT_DIR$/include/LoopClosing.h" />
-        <option value="$PROJECT_DIR$/src/Sim3Solver.cc" />
+        <option value="$PROJECT_DIR$/Thirdparty/DBoW2/DBoW2/TemplatedVocabulary.h" />
+        <option value="$PROJECT_DIR$/src/Initializer.cc" />
+        <option value="$PROJECT_DIR$/src/Frame.cc" />
+        <option value="$PROJECT_DIR$/include/ORBmatcher.h" />
+        <option value="$PROJECT_DIR$/include/Sim3Solver.h" />
+        <option value="$PROJECT_DIR$/include/Tracking.h" />
+        <option value="$PROJECT_DIR$/src/Map.cc" />
+        <option value="$PROJECT_DIR$/src/Tracking.cc" />
+        <option value="$PROJECT_DIR$/src/KeyFrameDatabase.cc" />
+        <option value="$PROJECT_DIR$/src/ORBextractor.cc" />
+        <option value="$PROJECT_DIR$/src/MapDrawer.cc" />
         <option value="$PROJECT_DIR$/src/ORBmatcher.cc" />
+        <option value="$PROJECT_DIR$/src/Sim3Solver.cc" />
+        <option value="$PROJECT_DIR$/src/KeyFrame.cc" />
+        <option value="$PROJECT_DIR$/include/KeyFrame.h" />
+        <option value="$PROJECT_DIR$/include/MapPoint.h" />
+        <option value="$PROJECT_DIR$/src/MapPoint.cc" />
+        <option value="$PROJECT_DIR$/src/LocalMapping.cc" />
         <option value="$PROJECT_DIR$/src/Optimizer.cc" />
         <option value="$PROJECT_DIR$/src/LoopClosing.cc" />
-        <option value="$PROJECT_DIR$/include/PnPsolver.h" />
-        <option value="$PROJECT_DIR$/src/Tracking.cc" />
-        <option value="$PROJECT_DIR$/src/PnPsolver.cc" />
       </list>
     </option>
   </component>
@@ -267,11 +182,11 @@
     <packageJsonPaths />
   </component>
   <component name="OCFindUsagesOptions" text="true" ivars="false" properties="true" derivedClasses="false" />
-  <component name="ProjectFrameBounds" extendedState="6">
-    <option name="x" value="442" />
-    <option name="y" value="116" />
-    <option name="width" value="649" />
-    <option name="height" value="748" />
+  <component name="ProjectFrameBounds" extendedState="7">
+    <option name="x" value="-71" />
+    <option name="y" value="34" />
+    <option name="width" value="1438" />
+    <option name="height" value="870" />
   </component>
   <component name="ProjectLevelVcsManager" settingsEditedManually="true" />
   <component name="ProjectView">
@@ -279,6 +194,7 @@
       <foldersAlwaysOnTop value="true" />
     </navigator>
     <panes>
+      <pane id="Scope" />
       <pane id="ProjectPane">
         <subPane>
           <expand>
@@ -300,13 +216,17 @@
             <path>
               <item name="ORB_SLAM2" type="b2602c69:ProjectViewProjectNode" />
               <item name="ORB_SLAM2" type="462c0819:PsiDirectoryNode" />
+              <item name="include" type="462c0819:PsiDirectoryNode" />
+            </path>
+            <path>
+              <item name="ORB_SLAM2" type="b2602c69:ProjectViewProjectNode" />
+              <item name="ORB_SLAM2" type="462c0819:PsiDirectoryNode" />
               <item name="src" type="462c0819:PsiDirectoryNode" />
             </path>
           </expand>
           <select />
         </subPane>
       </pane>
-      <pane id="Scope" />
     </panes>
   </component>
   <component name="PropertiesComponent">
@@ -314,7 +234,7 @@
     <property name="last_opened_file_path" value="$PROJECT_DIR$" />
     <property name="nodejs_interpreter_path.stuck_in_default_project" value="undefined stuck path" />
     <property name="nodejs_npm_path_reset_for_default_project" value="true" />
-    <property name="settings.editor.selected.configurable" value="CMakeSettings" />
+    <property name="settings.editor.selected.configurable" value="preferences.sourceCode" />
   </component>
   <component name="RunDashboard">
     <option name="ruleStates">
@@ -419,11 +339,25 @@
       <workItem from="1550065246279" duration="698000" />
       <workItem from="1550131124627" duration="1297000" />
       <workItem from="1550320564884" duration="3180000" />
+      <workItem from="1550365492494" duration="56635000" />
+      <workItem from="1550835801704" duration="3400000" />
+      <workItem from="1551082143511" duration="4320000" />
+      <workItem from="1551162791305" duration="48000" />
+      <workItem from="1551178329709" duration="21607000" />
+      <workItem from="1551345716454" duration="2879000" />
+      <workItem from="1551421859176" duration="4194000" />
+      <workItem from="1552051714722" duration="25801000" />
+      <workItem from="1552264273363" duration="5155000" />
+      <workItem from="1552461416093" duration="51626000" />
+      <workItem from="1552609169349" duration="17409000" />
+      <workItem from="1552695722824" duration="26787000" />
+      <workItem from="1552782923332" duration="10140000" />
+      <workItem from="1552869195025" duration="22627000" />
     </task>
     <servers />
   </component>
   <component name="TimeTrackingManager">
-    <option name="totallyTimeSpent" value="875148000" />
+    <option name="totallyTimeSpent" value="1127776000" />
   </component>
   <component name="TodoView">
     <todo-panel id="selected-file">
@@ -436,19 +370,20 @@
   </component>
   <component name="ToolWindowManager">
     <frame x="0" y="-6" width="1440" height="906" extended-state="6" />
+    <editor active="true" />
     <layout>
-      <window_info active="true" content_ui="combo" id="Project" order="0" visible="true" weight="0.16180556" />
+      <window_info active="true" content_ui="combo" id="Project" order="0" visible="true" weight="0.15486111" />
       <window_info anchor="bottom" id="TODO" order="6" weight="0.3298969" />
       <window_info anchor="bottom" id="CMake" order="7" weight="0.330413" />
       <window_info anchor="right" id="LuaJ" order="3" />
       <window_info anchor="bottom" id="Event Log" order="7" side_tool="true" />
-      <window_info anchor="bottom" id="Find" order="1" weight="0.33541927" />
-      <window_info anchor="bottom" id="Run" order="2" />
+      <window_info anchor="bottom" id="Find" order="1" weight="0.5294118" />
       <window_info anchor="bottom" id="Version Control" order="7" weight="0.32916147" />
+      <window_info anchor="bottom" id="Run" order="2" />
       <window_info id="Structure" order="1" side_tool="true" weight="0.25" />
       <window_info anchor="bottom" id="Terminal" order="7" weight="0.1652065" />
-      <window_info anchor="bottom" id="Debug" order="3" weight="0.4" />
       <window_info id="Favorites" order="2" side_tool="true" />
+      <window_info anchor="bottom" id="Debug" order="3" weight="0.4" />
       <window_info anchor="right" content_ui="combo" id="Hierarchy" order="2" weight="0.25" />
       <window_info anchor="bottom" id="Inspection" order="5" weight="0.4" />
       <window_info anchor="right" id="Commander" order="0" weight="0.4" />
@@ -501,373 +436,381 @@
   </component>
   <component name="XDebuggerManager">
     <breakpoint-manager>
-      <option name="time" value="4" />
+      <option name="time" value="6" />
     </breakpoint-manager>
   </component>
   <component name="editorHistoryManager">
-    <entry file="file://$PROJECT_DIR$/Thirdparty/g2o/g2o/core/base_vertex.h">
+    <entry file="file://$PROJECT_DIR$/Thirdparty/DBoW2/DBoW2/FeatureVector.cpp">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="268">
-          <caret line="101" column="24" selection-start-line="101" selection-start-column="24" selection-end-line="101" selection-end-column="24" />
+        <state relative-caret-position="248">
+          <caret line="30" column="20" selection-start-line="30" selection-start-column="20" selection-end-line="30" selection-end-column="20" />
         </state>
       </provider>
     </entry>
-    <entry file="file://$USER_HOME$/LocalUser/Repo/slam/opencv-3.4.0/modules/core/include/opencv2/core/mat.hpp">
+    <entry file="file://$PROJECT_DIR$/Thirdparty/DBoW2/DBoW2/FeatureVector.h">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="356">
-          <caret line="3565" column="28" selection-start-line="3565" selection-start-column="28" selection-end-line="3565" selection-end-column="28" />
+        <state relative-caret-position="248">
+          <caret line="20" column="6" selection-start-line="20" selection-start-column="6" selection-end-line="20" selection-end-column="6" />
         </state>
       </provider>
     </entry>
-    <entry file="file:///usr/include/c++/5/thread">
+    <entry file="file://$PROJECT_DIR$/Thirdparty/DBoW2/DBoW2/TemplatedVocabulary.h">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="3150">
-          <caret line="175" column="4" selection-start-line="175" selection-start-column="4" selection-end-line="175" selection-end-column="4" />
+        <state relative-caret-position="20268">
+          <caret line="1126" column="41" selection-start-line="1126" selection-start-column="41" selection-end-line="1126" selection-end-column="41" />
         </state>
       </provider>
     </entry>
-    <entry file="file:///usr/include/c++/5/bits/stl_set.h">
+    <entry file="file://$PROJECT_DIR$/src/Converter.cc">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="572">
-          <caret line="602" column="6" selection-start-line="602" selection-start-column="6" selection-end-line="602" selection-end-column="6" />
+        <state relative-caret-position="-2080" />
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/src/FrameDrawer.cc">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="-2994" />
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/include/Sim3Solver.h">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="414">
+          <caret line="35" lean-forward="true" selection-start-line="35" selection-end-line="35" />
         </state>
       </provider>
     </entry>
-    <entry file="file://$PROJECT_DIR$/Thirdparty/g2o/g2o/core/block_solver.h">
+    <entry file="file://$USER_HOME$/LocalUser/Repo/slam/opencv-3.4.0/modules/core/include/opencv2/core.hpp">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="430">
-          <caret line="183" column="49" selection-start-line="183" selection-start-column="49" selection-end-line="183" selection-end-column="49" />
+        <state relative-caret-position="482">
+          <caret line="1928" column="41" lean-forward="true" selection-start-line="1928" selection-start-column="41" selection-end-line="1928" selection-end-column="41" />
         </state>
       </provider>
     </entry>
-    <entry file="file://$PROJECT_DIR$/Thirdparty/g2o/g2o/core/optimization_algorithm_levenberg.h">
+    <entry file="file://$USER_HOME$/LocalUser/Repo/slam/opencv-3.4.0/modules/core/include/opencv2/core/core_c.h">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="1134">
-          <caret line="63" selection-start-line="63" selection-end-line="63" />
+        <state relative-caret-position="256">
+          <caret line="1488" column="8" selection-start-line="1488" selection-start-column="8" selection-end-line="1488" selection-end-column="8" />
         </state>
       </provider>
     </entry>
-    <entry file="file://$PROJECT_DIR$/Thirdparty/g2o/g2o/core/hyper_graph.h">
+    <entry file="file://$USER_HOME$/LocalUser/Repo/slam/opencv-3.4.0/modules/calib3d/include/opencv2/calib3d.hpp">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="239">
-          <caret line="147" column="54" lean-forward="true" selection-start-line="147" selection-start-column="54" selection-end-line="147" selection-end-column="54" />
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/Thirdparty/g2o/g2o/types/sim3.h">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="239">
-          <caret line="232" column="9" selection-start-line="232" selection-start-column="9" selection-end-line="232" selection-end-column="9" />
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/src/MapDrawer.cc">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="161">
-          <caret line="164" column="63" lean-forward="true" selection-start-line="164" selection-start-column="63" selection-end-line="164" selection-end-column="63" />
+        <state relative-caret-position="518">
+          <caret line="306" column="43" selection-start-line="306" selection-start-column="43" selection-end-line="306" selection-end-column="43" />
         </state>
       </provider>
     </entry>
     <entry file="file://$PROJECT_DIR$/src/Frame.cc">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="310">
-          <caret line="279" column="22" selection-start-line="279" selection-start-column="4" selection-end-line="279" selection-end-column="22" />
+        <state relative-caret-position="374">
+          <caret line="442" column="10" selection-start-line="442" selection-start-column="5" selection-end-line="442" selection-end-column="10" />
         </state>
       </provider>
     </entry>
-    <entry file="file://$PROJECT_DIR$/include/Map.h">
+    <entry file="file://$PROJECT_DIR$/include/KeyFrameDatabase.h">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="336">
-          <caret line="73" column="36" selection-start-line="73" selection-start-column="24" selection-end-line="73" selection-end-column="36" />
+        <state relative-caret-position="40">
+          <caret line="41" column="6" selection-start-line="41" selection-start-column="6" selection-end-line="41" selection-end-column="6" />
         </state>
       </provider>
     </entry>
-    <entry file="file://$PROJECT_DIR$/include/LocalMapping.h">
+    <entry file="file://$PROJECT_DIR$/include/Viewer.h">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="1026">
-          <caret line="57" column="14" selection-start-line="57" selection-start-column="14" selection-end-line="57" selection-end-column="14" />
+        <state relative-caret-position="256">
+          <caret line="62" column="12" selection-start-line="62" selection-start-column="12" selection-end-line="62" selection-end-column="12" />
         </state>
       </provider>
     </entry>
-    <entry file="file://$PROJECT_DIR$/src/Map.cc">
+    <entry file="file://$PROJECT_DIR$/Examples/Monocular/mono_euroc.cc">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="1098">
-          <caret line="61" column="7" selection-start-line="61" selection-start-column="7" selection-end-line="61" selection-end-column="7" />
+        <state relative-caret-position="-353">
+          <caret line="57" column="22" selection-start-line="57" selection-start-column="22" selection-end-line="57" selection-end-column="22" />
         </state>
       </provider>
     </entry>
-    <entry file="file:///usr/include/c++/5/bits/stl_map.h">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="248">
-          <caret line="149" column="57" selection-start-line="149" selection-start-column="57" selection-end-line="149" selection-end-column="57" />
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/Thirdparty/DBoW2/DBoW2/BowVector.h">
+    <entry file="file://$USER_HOME$/LocalUser/Repo/slam/Pangolin/include/pangolin/display/display.h">
       <provider selected="true" editor-type-id="text-editor">
         <state relative-caret-position="248">
-          <caret line="55" column="6" selection-start-line="55" selection-start-column="6" selection-end-line="55" selection-end-column="6" />
+          <caret line="66" column="19" selection-start-line="66" selection-start-column="19" selection-end-line="66" selection-end-column="19" />
         </state>
       </provider>
     </entry>
-    <entry file="file://$PROJECT_DIR$/include/Sim3Solver.h">
+    <entry file="file://$PROJECT_DIR$/include/System.h">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="-586">
+          <caret line="113" lean-forward="true" selection-start-line="113" selection-end-line="113" />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/src/System.cc">
       <provider selected="true" editor-type-id="text-editor">
         <state relative-caret-position="248">
-          <caret line="75" column="24" selection-start-line="75" selection-start-column="24" selection-end-line="75" selection-end-column="24" />
+          <caret line="240" column="23" selection-start-line="240" selection-start-column="23" selection-end-line="240" selection-end-column="23" />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file:///usr/include/c++/5/bits/stl_algobase.h">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="364">
+          <caret line="739" column="4" selection-start-line="739" selection-start-column="4" selection-end-line="739" selection-end-column="4" />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/include/PnPsolver.h">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="-1278">
+          <caret line="60" column="6" selection-start-line="60" selection-start-column="6" selection-end-line="60" selection-end-column="6" />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/src/PnPsolver.cc">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="32">
+          <caret line="177" column="19" selection-start-line="177" selection-start-column="19" selection-end-line="177" selection-end-column="19" />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/include/Frame.h">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="248">
+          <caret line="187" column="14" selection-start-line="187" selection-start-column="14" selection-end-line="187" selection-end-column="14" />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/src/KeyFrameDatabase.cc">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="18">
+          <caret line="95" column="1" lean-forward="true" selection-start-line="95" selection-start-column="1" selection-end-line="95" selection-end-column="1" />
         </state>
       </provider>
     </entry>
     <entry file="file://$PROJECT_DIR$/include/ORBmatcher.h">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="248">
-          <caret line="59" column="9" selection-start-line="59" selection-start-column="9" selection-end-line="59" selection-end-column="9" />
+        <state relative-caret-position="414">
+          <caret line="51" column="5" lean-forward="true" selection-start-line="51" selection-start-column="5" selection-end-line="51" selection-end-column="5" />
+          <folding>
+            <element signature="e#872#888#0" expanded="true" />
+          </folding>
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/Thirdparty/g2o/g2o/core/hyper_graph.h">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="256">
+          <caret line="147" column="15" selection-start-line="147" selection-start-column="15" selection-end-line="147" selection-end-column="15" />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/Thirdparty/g2o/g2o/types/types_sba.h">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="266">
+          <caret line="39" column="7" selection-start-line="39" selection-start-column="7" selection-end-line="39" selection-end-column="7" />
         </state>
       </provider>
     </entry>
     <entry file="file://$PROJECT_DIR$/Thirdparty/g2o/g2o/types/types_seven_dof_expmap.h">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="1764">
-          <caret line="98" column="8" selection-start-line="98" selection-start-column="8" selection-end-line="98" selection-end-column="8" />
+        <state relative-caret-position="239">
+          <caret line="129" column="6" selection-start-line="129" selection-start-column="6" selection-end-line="129" selection-end-column="6" />
         </state>
       </provider>
     </entry>
-    <entry file="file://$PROJECT_DIR$/src/Sim3Solver.cc">
+    <entry file="file://$PROJECT_DIR$/src/Initializer.cc">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="2718">
-          <caret line="151" column="20" selection-start-line="151" selection-start-column="20" selection-end-line="151" selection-end-column="20" />
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/include/LoopClosing.h">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="2448">
-          <caret line="136" column="22" selection-start-line="136" selection-start-column="22" selection-end-line="136" selection-end-column="22" />
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/src/LoopClosing.cc">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="1098">
-          <caret line="61" column="12" selection-start-line="61" selection-start-column="12" selection-end-line="61" selection-end-column="12" />
+        <state relative-caret-position="270">
+          <caret line="49" column="19" lean-forward="true" selection-start-line="49" selection-start-column="19" selection-end-line="49" selection-end-column="19" />
           <folding>
             <element signature="e#828#852#0" expanded="true" />
           </folding>
         </state>
       </provider>
     </entry>
-    <entry file="file:///usr/include/c++/5/bits/list.tcc">
+    <entry file="file://$PROJECT_DIR$/Thirdparty/g2o/g2o/types/types_six_dof_expmap.h">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="1188">
-          <caret line="66" column="5" selection-start-line="66" selection-start-column="5" selection-end-line="66" selection-end-column="5" />
+        <state relative-caret-position="256">
+          <caret line="173" column="7" selection-start-line="173" selection-start-column="7" selection-end-line="173" selection-end-column="7" />
         </state>
       </provider>
     </entry>
-    <entry file="file:///usr/include/c++/5/bits/stl_list.h">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="24624">
-          <caret line="1368" column="22" selection-start-line="1368" selection-start-column="15" selection-end-line="1368" selection-end-column="22" />
-        </state>
-      </provider>
-    </entry>
-    <entry file="file:///usr/include/c++/5/bits/stl_construct.h">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="2466">
-          <caret line="137" column="4" selection-start-line="137" selection-start-column="4" selection-end-line="137" selection-end-column="4" />
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/include/Optimizer.h">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="702">
-          <caret line="39" column="32" selection-start-line="39" selection-start-column="16" selection-end-line="39" selection-end-column="32" />
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/Thirdparty/g2o/g2o/core/base_edge.h">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="1026">
-          <caret line="57" column="21" selection-start-line="57" selection-start-column="21" selection-end-line="57" selection-end-column="21" />
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$USER_HOME$/LocalUser/Repo/slam/opencv-3.4.0/modules/core/include/opencv2/core/types.hpp">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="13896">
-          <caret line="772" column="19" selection-start-line="772" selection-start-column="19" selection-end-line="772" selection-end-column="19" />
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/include/Frame.h">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="3384">
-          <caret line="188" column="63" selection-start-line="188" selection-start-column="63" selection-end-line="188" selection-end-column="63" />
-        </state>
-      </provider>
-    </entry>
-    <entry file="file:///usr/include/c++/5/bits/stl_vector.h">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="15588">
-          <caret line="866" column="6" selection-start-line="866" selection-start-column="6" selection-end-line="866" selection-end-column="6" />
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$USER_HOME$/LocalUser/Repo/slam/opencv-3.4.0/modules/core/include/opencv2/core.hpp">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="47988">
-          <caret line="2666" column="16" selection-start-line="2666" selection-start-column="16" selection-end-line="2666" selection-end-column="16" />
-        </state>
-      </provider>
-    </entry>
-    <entry file="file:///usr/include/x86_64-linux-gnu/bits/mathcalls.h">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="2790">
-          <caret line="155" column="35" selection-start-line="155" selection-start-column="35" selection-end-line="155" selection-end-column="35" />
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$USER_HOME$/LocalUser/Repo/slam/opencv-3.4.0/modules/core/include/opencv2/core/types_c.h">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="10494">
-          <caret line="583" column="17" selection-start-line="583" selection-start-column="17" selection-end-line="583" selection-end-column="17" />
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$USER_HOME$/LocalUser/Repo/slam/opencv-3.4.0/modules/core/include/opencv2/core/core_c.h">
+    <entry file="file://$PROJECT_DIR$/include/ORBextractor.h">
       <provider selected="true" editor-type-id="text-editor">
         <state relative-caret-position="248">
-          <caret line="1331" column="14" selection-start-line="1331" selection-start-column="14" selection-end-line="1331" selection-end-column="14" />
+          <caret line="59" column="17" selection-start-line="59" selection-start-column="17" selection-end-line="59" selection-end-column="17" />
         </state>
       </provider>
     </entry>
-    <entry file="file://$PROJECT_DIR$/include/PnPsolver.h">
+    <entry file="file://$USER_HOME$/LocalUser/Repo/slam/opencv-3.4.0/modules/features2d/include/opencv2/features2d.hpp">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="356">
-          <caret line="86" column="7" selection-start-line="86" selection-start-column="7" selection-end-line="86" selection-end-column="7" />
+        <state relative-caret-position="310">
+          <caret line="420" column="16" selection-start-line="420" selection-start-column="16" selection-end-line="420" selection-end-column="16" />
         </state>
       </provider>
     </entry>
-    <entry file="file://$PROJECT_DIR$/src/PnPsolver.cc">
+    <entry file="file://$PROJECT_DIR$/src/ORBextractor.cc">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="440">
-          <caret line="1087" column="1" lean-forward="true" selection-start-line="1087" selection-start-column="1" selection-end-line="1087" selection-end-column="1" />
+        <state relative-caret-position="446">
+          <caret line="1136" column="42" lean-forward="true" selection-start-line="1136" selection-start-column="42" selection-end-line="1136" selection-end-column="42" />
         </state>
       </provider>
     </entry>
-    <entry file="file://$PROJECT_DIR$/src/System.cc">
+    <entry file="file://$PROJECT_DIR$/include/MapDrawer.h">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="5382">
-          <caret line="299" column="14" selection-start-line="299" selection-start-column="14" selection-end-line="299" selection-end-column="14" />
+        <state relative-caret-position="320">
+          <caret line="38" column="9" selection-start-line="38" selection-start-column="9" selection-end-line="38" selection-end-column="9" />
         </state>
       </provider>
     </entry>
-    <entry file="file://$PROJECT_DIR$/Examples/Monocular/mono_tum.cc">
+    <entry file="file://$PROJECT_DIR$/src/Viewer.cc">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="972">
-          <caret line="54" column="42" selection-start-line="54" selection-start-column="42" selection-end-line="54" selection-end-column="42" />
-          <folding>
-            <element signature="e#829#847#0" expanded="true" />
-          </folding>
+        <state relative-caret-position="234">
+          <caret line="142" column="70" selection-start-line="142" selection-start-column="57" selection-end-line="142" selection-end-column="70" />
         </state>
       </provider>
     </entry>
-    <entry file="file://$PROJECT_DIR$/src/Converter.cc">
+    <entry file="file://$PROJECT_DIR$/src/MapDrawer.cc">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="1962">
-          <caret line="109" column="35" selection-start-line="109" selection-start-column="26" selection-end-line="109" selection-end-column="35" />
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/include/Converter.h">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="540">
-          <caret line="30" column="1" selection-start-line="30" selection-start-column="1" selection-end-line="30" selection-end-column="1" />
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/src/KeyFrameDatabase.cc">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="4068">
-          <caret line="226" column="34" selection-start-line="226" selection-start-column="18" selection-end-line="226" selection-end-column="34" />
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/include/KeyFrameDatabase.h">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="282">
-          <caret line="52" selection-start-line="52" selection-end-line="52" />
+        <state relative-caret-position="284">
+          <caret line="115" column="31" selection-start-line="115" selection-start-column="31" selection-end-line="115" selection-end-column="31" />
         </state>
       </provider>
     </entry>
     <entry file="file://$PROJECT_DIR$/src/ORBmatcher.cc">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="-346">
-          <caret line="1420" column="75" lean-forward="true" selection-start-line="1420" selection-start-column="75" selection-end-line="1420" selection-end-column="75" />
+        <state relative-caret-position="500">
+          <caret line="380" column="32" selection-start-line="380" selection-start-column="32" selection-end-line="380" selection-end-column="32" />
+          <folding>
+            <element signature="e#828#851#0" expanded="true" />
+          </folding>
         </state>
       </provider>
     </entry>
-    <entry file="file://$PROJECT_DIR$/src/Optimizer.cc">
+    <entry file="file://$PROJECT_DIR$/src/Sim3Solver.cc">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="266">
-          <caret line="250" column="15" selection-start-line="250" selection-start-column="15" selection-end-line="250" selection-end-column="15" />
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/include/Tracking.h">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="266">
-          <caret line="176" column="27" selection-start-line="176" selection-start-column="27" selection-end-line="176" selection-end-column="27" />
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/include/MapPoint.h">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="378">
-          <caret line="134" column="19" lean-forward="true" selection-start-line="134" selection-start-column="19" selection-end-line="134" selection-end-column="19" />
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/src/MapPoint.cc">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="339">
-          <caret line="262" column="1" lean-forward="true" selection-start-line="262" selection-start-column="1" selection-end-line="262" selection-end-column="1" />
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/src/LocalMapping.cc">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="266">
-          <caret line="239" column="1" lean-forward="true" selection-start-line="239" selection-start-column="1" selection-end-line="239" selection-end-column="1" />
+        <state relative-caret-position="330">
+          <caret line="89" column="42" selection-start-line="89" selection-start-column="42" selection-end-line="89" selection-end-column="42" />
         </state>
       </provider>
     </entry>
     <entry file="file://$PROJECT_DIR$/src/KeyFrame.cc">
       <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="518">
+          <caret line="583" column="29" selection-start-line="583" selection-start-column="29" selection-end-line="583" selection-end-column="29" />
+          <folding>
+            <element signature="e#828#849#0" expanded="true" />
+          </folding>
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/include/Tracking.h">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="356">
+          <caret line="144" column="9" selection-start-line="144" selection-start-column="9" selection-end-line="144" selection-end-column="9" />
+          <folding>
+            <element signature="e#868#899#0" expanded="true" />
+          </folding>
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/include/MapPoint.h">
+      <provider selected="true" editor-type-id="text-editor">
         <state relative-caret-position="248">
-          <caret line="255" column="12" selection-start-line="255" selection-start-column="4" selection-end-line="255" selection-end-column="12" />
+          <caret line="42" column="26" selection-start-line="42" selection-start-column="9" selection-end-line="42" selection-end-column="26" />
         </state>
       </provider>
     </entry>
     <entry file="file://$PROJECT_DIR$/include/KeyFrame.h">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="255">
-          <caret line="167" column="63" lean-forward="true" selection-start-line="167" selection-start-column="63" selection-end-line="167" selection-end-column="63" />
+        <state relative-caret-position="248">
+          <caret line="185" column="29" selection-start-line="185" selection-start-column="29" selection-end-line="185" selection-end-column="29" />
+          <folding>
+            <element signature="e#867#888#0" expanded="true" />
+          </folding>
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/Thirdparty/g2o/g2o/core/optimization_algorithm_levenberg.h">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="256">
+          <caret line="62" column="11" selection-start-line="62" selection-start-column="11" selection-end-line="62" selection-end-column="11" />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/include/Map.h">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="32">
+          <caret line="37" column="6" selection-start-line="37" selection-start-column="6" selection-end-line="37" selection-end-column="6" />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/src/Map.cc">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="302">
+          <caret line="84" column="21" selection-start-line="84" selection-start-column="18" selection-end-line="84" selection-end-column="21" />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/src/MapPoint.cc">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="248">
+          <caret line="268" column="15" selection-start-line="268" selection-start-column="15" selection-end-line="268" selection-end-column="15" />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/include/Optimizer.h">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="332">
+          <caret line="45" column="31" selection-start-line="45" selection-start-column="15" selection-end-line="45" selection-end-column="31" />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/Thirdparty/g2o/g2o/core/optimizable_graph.h">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="239">
+          <caret line="418" column="13" selection-start-line="418" selection-start-column="13" selection-end-line="418" selection-end-column="13" />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/src/Optimizer.cc">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="240">
+          <caret line="718" column="83" selection-start-line="718" selection-start-column="83" selection-end-line="718" selection-end-column="83" />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/include/LocalMapping.h">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="282">
+          <caret line="112" column="14" selection-start-line="112" selection-start-column="14" selection-end-line="112" selection-end-column="14" />
         </state>
       </provider>
     </entry>
     <entry file="file://$PROJECT_DIR$/src/Tracking.cc">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="320">
-          <caret line="658" column="36" selection-start-line="658" selection-start-column="26" selection-end-line="658" selection-end-column="36" />
+        <state relative-caret-position="311">
+          <caret line="710" column="22" selection-start-line="710" selection-start-column="11" selection-end-line="710" selection-end-column="22" />
           <folding>
             <element signature="e#829#850#0" expanded="true" />
           </folding>
         </state>
       </provider>
     </entry>
-    <entry file="file://$PROJECT_DIR$/src/Initializer.cc">
+    <entry file="file://$PROJECT_DIR$/src/LocalMapping.cc">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="260">
+          <caret line="193" column="29" lean-forward="true" selection-start-line="193" selection-start-column="29" selection-end-line="193" selection-end-column="29" />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/include/LoopClosing.h">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="356">
+          <caret line="94" column="20" selection-start-line="94" selection-start-column="9" selection-end-line="94" selection-end-column="20" />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/src/LoopClosing.cc">
       <provider selected="true" editor-type-id="text-editor">
         <state relative-caret-position="86">
-          <caret line="381" lean-forward="true" selection-start-line="381" selection-end-line="381" />
+          <caret line="534" lean-forward="true" selection-start-line="534" selection-end-line="534" />
         </state>
       </provider>
     </entry>

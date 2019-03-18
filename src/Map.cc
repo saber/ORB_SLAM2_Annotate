@@ -105,7 +105,7 @@ long unsigned int Map::KeyFramesInMap()
     unique_lock<mutex> lock(mMutexMap);
     return mspKeyFrames.size();
 }
-// 返回局部地图点
+// 返回局部地图点，仅仅为了显示！
 vector<MapPoint*> Map::GetReferenceMapPoints()
 {
     unique_lock<mutex> lock(mMutexMap);

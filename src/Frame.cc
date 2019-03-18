@@ -74,7 +74,7 @@ Frame::Frame(const cv::Mat &imLeft, const cv::Mat &imRight, const double &timeSt
     mvLevelSigma2 = mpORBextractorLeft->GetScaleSigmaSquares();
     mvInvLevelSigma2 = mpORBextractorLeft->GetInverseScaleSigmaSquares();
 
-    // ORB extraction
+    // ORB extraction 建立两个线程，分别计算左和右目图像的关键点。
     thread threadLeft(&Frame::ExtractORB,this,0,imLeft);
     thread threadRight(&Frame::ExtractORB,this,1,imRight);
     threadLeft.join();
@@ -87,7 +87,7 @@ Frame::Frame(const cv::Mat &imLeft, const cv::Mat &imRight, const double &timeSt
 
     UndistortKeyPoints();
 
-    ComputeStereoMatches();
+    ComputeStereoMatches(); // ???
 
     mvpMapPoints = vector<MapPoint*>(N,static_cast<MapPoint*>(NULL));    
     mvbOutlier = vector<bool>(N,false);
@@ -173,6 +173,9 @@ Frame::Frame(const cv::Mat &imGray, const cv::Mat &imDepth, const double &timeSt
 // 单目 Frame 构造
 // 提取 orb 特征，保存关键点、描述子
 // 关键点畸变去除,将关键点分发到图像划分的网格中，为后期的快速匹配做准备
+//! \brief 对图像做必要处理
+//! \details
+//!         1)特征提取 orb 关键点以及描述子 2)对提取处的关键点进行畸变的去除 3)
 Frame::Frame(const cv::Mat &imGray, const double &timeStamp, ORBextractor* extractor, ORBVocabulary* voc,
              cv::Mat &K, cv::Mat &distCoef, const float &bf, const float &thDepth)
     :mpORBvocabulary(voc),mpORBextractorLeft(extractor),mpORBextractorRight(static_cast<ORBextractor*>(NULL)),
@@ -180,7 +183,7 @@ Frame::Frame(const cv::Mat &imGray, const double &timeStamp, ORBextractor* extra
 {
     // Frame ID
     mnId=nNextId++;
-
+//std::cout << "深度阈值：" << mThDepth << std::endl;
     // Scale Level Info orb特征提取参数设定
     mnScaleLevels = mpORBextractorLeft->GetLevels();
     mfScaleFactor = mpORBextractorLeft->GetScaleFactor();
@@ -234,12 +237,12 @@ Frame::Frame(const cv::Mat &imGray, const double &timeStamp, ORBextractor* extra
 //        i++;
 //    }
 //    // end: 自己添加保存图像
-    mb = mbf/fx;
+    mb = mbf/fx; // 单目这里为 0
     // 将去除畸变的关键点分配到网格内部（网格内部记录的是：包含的关键点在 mnKeysUn 中的序号）
     AssignFeaturesToGrid();
 }
 
-// 对去除畸变的关键点，分配到对应的网格内部。（仅仅是记录关键点在 mnKeysUn 中的序号）
+//! \brief 对去除畸变的关键点，分配到对应的网格内部。（仅仅是记录关键点在 mnKeysUn 中的序号）
 void Frame::AssignFeaturesToGrid()
 {
     int nReserve = 0.5f*N/(FRAME_GRID_COLS*FRAME_GRID_ROWS);
@@ -287,8 +290,10 @@ void Frame::UpdatePoseMatrices()
     mtcw = mTcw.rowRange(0,3).col(3);
     mOw = -mRcw.t()*mtcw;
 }
-// 检查当前地图点是否隶属于当前帧.(就是将地图点投影到当前帧，进行判断)。
-// 如果属于当前帧。那么添加 MapPoint 的属性并返回真。否则返回 false
+
+//! \brief 检查当前地图点是否隶属于当前帧.(就是将地图点投影到当前帧，进行判断)。
+//!        如果属于当前帧。那么添加 MapPoint 的属性并返回真。否则返回 false
+//! \note only for tracking
 bool Frame::isInFrustum(MapPoint *pMP, float viewingCosLimit)
 {
     pMP->mbTrackInView = false;
@@ -342,16 +347,14 @@ bool Frame::isInFrustum(MapPoint *pMP, float viewingCosLimit)
     pMP->mTrackProjXR = u - mbf*invz; // 双目专用，可以根据 14 讲 第 5 章相机模型得到
     pMP->mTrackProjY = v;
     pMP->mnTrackScaleLevel= nPredictedLevel;
-    pMP->mTrackViewCos = viewCos;
+    pMP->mTrackViewCos = viewCos; // 仅再次一次赋值
 
     return true;
 }
-// 在金字塔图像上{minLevel-maxLevel}，寻找位置为 (x,y) 半径为 r 个像素区域内的所有关键点（这里半径是 x y方向，也就是正方形，不是圆形区域）。可以指定最小最大金字塔 level
-// 这个函数本身提供的是，两个匹配图像中，图像1的关键点，在微小移动到图像2过程中。坐标移动很小。
-// 这样通过在图像2中以图像1关键点为中心，半径为r 的所有关键点就是对应图像1关键点的潜在配准点。
-// 这个函数充当的作用就是在图像2上搜索。给定的 x y 是图像1的关键点坐标
-// 这里用到了在构造函数中将所有关键点分配到 mGrid。通过网格来快速搜寻潜在匹配点
-//      返回值: 记录在当前图像上潜在匹配的关键点 mvKeysUn 中的序号
+//! \brief 在金字塔图像上 {minLevel，maxLevel}，寻找 Frame 中坐标为 (x,y) 半径为 r
+//!        个像素区域内的所有关键点。这里的区域表示的是正方形。
+//! \note 内部利用分配好的网格加速寻找
+//! \return 图像指定区域上的所有关键点序号
 vector<size_t> Frame::GetFeaturesInArea(const float &x, const float  &y, const float  &r, const int minLevel, const int maxLevel) const
 {
     // 返回值：记录潜在关键点在去畸变关键点集 mvKeysUn 中的序号
@@ -376,6 +379,7 @@ vector<size_t> Frame::GetFeaturesInArea(const float &x, const float  &y, const f
         return vIndices;
 
     const bool bCheckLevels = (minLevel>0) || (maxLevel>=0);
+
     // 获取半径为 r 的所有网格内部的关键点
     for(int ix = nMinCellX; ix<=nMaxCellX; ix++)
     {
@@ -399,6 +403,7 @@ vector<size_t> Frame::GetFeaturesInArea(const float &x, const float  &y, const f
 
                 const float distx = kpUn.pt.x-x;
                 const float disty = kpUn.pt.y-y;
+
                 // 记录在半径 r 内的关键点，实际上这里应该把在 Grid 内的所有点都当做潜在的匹配点，为了增加潜在配对点。但是最有效方法就是增加半径 r
                 if(fabs(distx)<r && fabs(disty)<r)
                     vIndices.push_back(vCell[j]);   // 记录关键点在 mvKeysUn 中的序号
@@ -409,7 +414,8 @@ vector<size_t> Frame::GetFeaturesInArea(const float &x, const float  &y, const f
     return vIndices;
 }
 
-// 判断当前去除畸变的关键点所在图像中的哪个网格，记录网格坐标
+//! \brief 判断当前去除畸变的关键点所在图像中的哪个网格，记录网格坐标
+//! \return 关键点是否超出网格坐标系的边界
 bool Frame::PosInGrid(const cv::KeyPoint &kp, int &posX, int &posY)
 {
     // 判断当前关键点(在去除畸变的图像参考系)所在网格坐标
@@ -432,7 +438,8 @@ void Frame::ComputeBoW()
         mpORBvocabulary->transform(vCurrentDesc,mBowVec,mFeatVec,4);
     }
 }
-// 将上一步特征提取的点进行去畸变处理，可以参考14讲书上畸变去除部分！
+
+//! \brief 将特征提取的关键点去畸变处理(利用 OpenCV 函数)，可以参考 14 讲书上畸变去除部分！
 void Frame::UndistortKeyPoints()
 {
     if(mDistCoef.at<float>(0)==0.0)
@@ -466,7 +473,11 @@ void Frame::UndistortKeyPoints()
         mvKeysUn[i]=kp;
     }
 }
-// 记录图像边界，如果图像本身畸变去除了。那么边界就是图像的行列。如果没有去除畸变，那么需要把当前图像的四个角的坐标当做边界点，然后进行畸变去除，之后在记录 x y 的边界值
+
+//! \brief 记录图像边界
+//! \param imLeft cv::Mat 图像
+//! \details 如果图像本身畸变去除了。那么图像边界就是图像的行列。
+//!          如果没有去除畸变，那么需要把当前图像的四个角的坐标当做边界点，然后进行畸变去除，之后在记录 x y 的边界值
 void Frame::ComputeImageBounds(const cv::Mat &imLeft)
 {
     if(mDistCoef.at<float>(0)!=0.0)
@@ -674,7 +685,7 @@ void Frame::ComputeStereoMatches()
     }
 }
 
-
+//! \brief 根据深度图计算关键点深度值。及其 "类" 双目的第二目的 横坐标
 void Frame::ComputeStereoFromRGBD(const cv::Mat &imDepth)
 {
     mvuRight = vector<float>(N,-1);
@@ -688,12 +699,13 @@ void Frame::ComputeStereoFromRGBD(const cv::Mat &imDepth)
         const float &v = kp.pt.y;
         const float &u = kp.pt.x;
 
-        const float d = imDepth.at<float>(v,u);
+        const float d = imDepth.at<float>(v,u); // 按照原始图像的像素点获得相应深度取值
 
         if(d>0)
         {
             mvDepth[i] = d;
-            mvuRight[i] = kpU.pt.x-mbf/d;
+            mvuRight[i] = kpU.pt.x-mbf/d; // ?这个可能利用的是 "类" 双目的视差公式。然后计算该关键点在 另一个 "目" 上的横坐标值。
+                                          // 参考 书上 14 讲 91 页
         }
     }
 }

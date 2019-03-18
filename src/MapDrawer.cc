@@ -79,6 +79,7 @@ void MapDrawer::DrawMapPoints()
 
     glEnd();
 }
+
 // 绘制关键帧和图模型。关键帧用蓝色。
 void MapDrawer::DrawKeyFrames(const bool bDrawKF, const bool bDrawGraph)
 {
@@ -141,7 +142,6 @@ void MapDrawer::DrawKeyFrames(const bool bDrawKF, const bool bDrawGraph)
             cv::Mat Ow = vpKFs[i]->GetCameraCenter();
             if(!vCovKFs.empty())
             {
-                // 画出以当前关键帧为起点。终到序号大于当前关键帧的所有共视关键帧。之间的连线。为什么要这么画？？？
                 for(vector<KeyFrame*>::const_iterator vit=vCovKFs.begin(), vend=vCovKFs.end(); vit!=vend; vit++)
                 {
                     if((*vit)->mnId<vpKFs[i]->mnId)
@@ -161,7 +161,7 @@ void MapDrawer::DrawKeyFrames(const bool bDrawKF, const bool bDrawGraph)
                 glVertex3f(Owp.at<float>(0),Owp.at<float>(1),Owp.at<float>(2));
             }
 
-            // Loops 闭环时形成的关系？？？？带看
+            // Loops
             set<KeyFrame*> sLoopKFs = vpKFs[i]->GetLoopEdges();
             for(set<KeyFrame*>::iterator sit=sLoopKFs.begin(), send=sLoopKFs.end(); sit!=send; sit++)
             {
@@ -226,6 +226,7 @@ void MapDrawer::SetCurrentCameraPose(const cv::Mat &Tcw)
     unique_lock<mutex> lock(mMutexCamera);
     mCameraPose = Tcw.clone();
 }
+
 // 获得当前相机矩阵
 void MapDrawer::GetCurrentOpenGLCameraMatrix(pangolin::OpenGlMatrix &M)
 {

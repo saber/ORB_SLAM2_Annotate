@@ -84,7 +84,7 @@ Sim3Solver::Sim3Solver(KeyFrame *pKF1, KeyFrame *pKF2, const vector<MapPoint *> 
             const float sigmaSquare1 = pKF1->mvLevelSigma2[kp1.octave];
             const float sigmaSquare2 = pKF2->mvLevelSigma2[kp2.octave];
 
-            mvnMaxError1.push_back(9.210*sigmaSquare1); // ???? 为什么选取这个参数？？？
+            mvnMaxError1.push_back(9.210*sigmaSquare1); // ???? 为什么选取这个参数？？？:这个对应概率为 99% 时，一个像素误差，参考 A2.2 卡方分布表
             mvnMaxError2.push_back(9.210*sigmaSquare2);
 
             mvpMapPoints1.push_back(pMP1);
@@ -185,6 +185,7 @@ cv::Mat Sim3Solver::iterate(int nIterations, bool &bNoMore, vector<bool> &vbInli
             vAvailableIndices[randi] = vAvailableIndices.back(); // 防止取出重复的元素
             vAvailableIndices.pop_back();
         }
+
         // 在初始化时，已经得到固定了尺度信息，为什么在还要计算相似变换？？？
         // (随着误差的累计，运动尺度会飘移，导致地图点尺度也会飘移。因此在遇到闭环时，两者之间运动其实相差一个尺度。也就是多了一个自由度，变为了 sim3)
         ComputeSim3(P3Dc1i,P3Dc2i); // 根据匹配的点对计算 Sim3 相似变换矩阵。
@@ -210,6 +211,7 @@ cv::Mat Sim3Solver::iterate(int nIterations, bool &bNoMore, vector<bool> &vbInli
             }
         }
     }
+
     // 达到了最大迭代次数，但是仍然没有满足 『足够内点』这一条件那么此次 Sim3Solver 求解失败。对应的闭环关键帧不好
     if(mnIterations>=mRansacMaxIts)
         bNoMore=true;
@@ -222,6 +224,7 @@ cv::Mat Sim3Solver::find(vector<bool> &vbInliers12, int &nInliers)
     bool bFlag;
     return iterate(mRansacMaxIts,bFlag,vbInliers12,nInliers);
 }
+
 // P: 3x3 ，每一列是一个 3d 点坐标。在相机坐标系
 // Pr: 3x3 ,每一列同样是一个 3d 点坐标。以质心为原点的坐标
 // C: 3 个点的质心
@@ -237,17 +240,17 @@ void Sim3Solver::ComputeCentroid(cv::Mat &P, cv::Mat &Pr, cv::Mat &C)
     }
 }
 
-// P1 P2 是两幅图像的 3 对匹配点对。
-// 且 P1 p2 都是 3x3 矩阵，每一列都是一个 3d 点。 以 p1 为例。包含的点是相机坐标系的 3d 点。
-//    这里是要计算两个相机坐标之间的相似变换。变换是由点集 2 ---> 点集 1
-// 就是按照 Horn 论文 4C 部分介绍的计算步骤。
-//    计算了下面的内部变量：
-//    Current Estimation 根据 3 个任选 点对，按照论文 Horn 计算步骤，得到的旋转、平移、尺度因子
-//    cv::Mat mR12i; // 旋转
-//    cv::Mat mt12i; // 平移
-//    float ms12i; // 单目尺度因子 s, 对于双目和 rgbd 为 1
-//    cv::Mat mT12i; // 上面计算出来的 s旋转 + 平移
-//    cv::Mat mT21i; // T21i^-1
+//! \see 就是按照 Horn 论文 4C 部分介绍的计算步骤。
+//! \brief 这里是要计算两个相机坐标之间的相似变换。变换是由点集 2 ---> 点集 1
+//! \note P1 P2 是两幅图像的 3 对匹配点对。
+//!     且 P1 p2 都是 3x3 矩阵，每一列都是一个 3d 点。 以 p1 为例。包含的点是相机坐标系的 3d 点。
+//!    计算了下面的内部变量：
+//!    Current Estimation 根据 3 个任选 点对，按照论文 Horn 计算步骤，得到的旋转、平移、尺度因子
+//!    cv::Mat mR12i; // 旋转
+//!    cv::Mat mt12i; // 平移
+//!    float ms12i; // 单目尺度因子 s, 对于双目和 rgbd 为 1
+//!    cv::Mat mT12i; // 上面计算出来的 s旋转 + 平移
+//!    cv::Mat mT21i; // T21i^-1
 void Sim3Solver::ComputeSim3(cv::Mat &P1, cv::Mat &P2)
 {
     // Custom implementation of:
@@ -294,10 +297,12 @@ void Sim3Solver::ComputeSim3(cv::Mat &P1, cv::Mat &P2)
 
     cv::Mat eval, evec;
 
-    cv::eigen(N,eval,evec); //evec[0] is the quaternion of the desired rotation // 这里 evec[0] 是单位向量 4x1
+    cv::eigen(N,eval,evec); //evec[0] is the quaternion of the desired rotation // 这里 evec[0] 是单位向量 4x1,最大特征值对应的特征向量
 
     cv::Mat vec(1,3,evec.type());
-    (evec.row(0).colRange(1,4)).copyTo(vec); //extract imaginary part of the quaternion (sin(theta/2)*axis) 所以这个向量 vec 的模长就是 sin(theta/2)
+    (evec.row(0).colRange(1,4)).copyTo(vec); //extract imaginary part of the quaternion (sin(theta/2)*axis)
+                                             // 根据参考论文中的给出的四元数部分q的公式有如下发现：虚数模长就是
+                                            // 也就是这个向量 vec 的模长就是 sin(theta/2)。计算方式也可以参考 14 讲 3.19 式
 
     // Rotation angle. sin is the norm of the imaginary part, cos is the real part
     double ang=atan2(norm(vec),evec.at<float>(0,0)); // sin(theta/2),cos(theta/2) 已知后，计算 tan(theta/2) 反求旋转角 theta
@@ -308,6 +313,7 @@ void Sim3Solver::ComputeSim3(cv::Mat &P1, cv::Mat &P2)
 
     cv::Rodrigues(vec,mR12i); // computes the rotation matrix from angle-axis
 
+    // 利用 2D 部分计算尺度 s
     // Step 5: Rotate set 2
 
     cv::Mat P3 = mR12i*Pr2;
@@ -321,6 +327,7 @@ void Sim3Solver::ComputeSim3(cv::Mat &P1, cv::Mat &P2)
         aux_P3=P3;
         cv::pow(P3,2,aux_P3); // 因为旋转一个向量前后模长不变，所以这里直接计算旋转后的向量
         double den = 0;
+
         // 计算论文中 s 的分子部分
         for(int i=0; i<aux_P3.rows; i++)
         {
@@ -340,6 +347,7 @@ void Sim3Solver::ComputeSim3(cv::Mat &P1, cv::Mat &P2)
     mt12i.create(1,3,P1.type());
     mt12i = O1 - ms12i*mR12i*O2; // 计算平移
 
+    // 上面计算完 R t s 后即可计算相似变换
     // Step 8: Transformation
 
     // Step 8.1 T12
@@ -360,7 +368,6 @@ void Sim3Solver::ComputeSim3(cv::Mat &P1, cv::Mat &P2)
     cv::Mat tinv = -sRinv*mt12i;
     tinv.copyTo(mT21i.rowRange(0,3).col(3));
 }
-
 
 // 分别根据计算出来的变换矩阵 mT12i mT21i 将两个关键帧对应的 3d 点投影到对方的图像坐标系上。
 // 根据提前设定的每个关键点对应的误差阈值，判断当前点是否属于内点
@@ -433,6 +440,7 @@ void Sim3Solver::Project(const vector<cv::Mat> &vP3Dw, vector<cv::Mat> &vP2D, cv
         vP2D.push_back((cv::Mat_<float>(2,1) << fx*x+cx, fy*y+cy));
     }
 }
+
 // 将给定的所有相机坐标系 3D 点 3x1。变换到图像坐标系上。得到图像坐标系点对 2x1
 void Sim3Solver::FromCameraToImage(const vector<cv::Mat> &vP3Dc, vector<cv::Mat> &vP2D, cv::Mat K)
 {

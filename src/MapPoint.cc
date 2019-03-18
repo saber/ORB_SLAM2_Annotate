@@ -112,6 +112,7 @@ void MapPoint::AddObservation(KeyFrame* pKF, size_t idx)
     else
         nObs++; // 针对单目
 }
+
 // 如果当前地图点和关键帧 pKF 建立了关联。那么取消这个关联。减少当前地图点被关键帧观测的次数。
 // 如果当前地图点对应的参考关键帧是 pKF，那么选择其他关键帧作为参考关键帧。如果最后当前地图点被观测的次数小于等于2
 //    那么此时就会将这个点标记为坏点。然后在地图中去除该点
@@ -154,6 +155,7 @@ int MapPoint::Observations()
     unique_lock<mutex> lock(mMutexFeatures);
     return nObs;
 }
+
 // 在地图中将这个地图点清除。然后与当前地图点有关联的关键帧，要取消这个关联
 // 在局部建图中剔除地图点函数中调用以及局部 BA 优化后有些地图点可能是坏点。对于不满足论文中 VI LOCAL MAPPING B 两个条件时，地图点都会被标记为坏点，然后在去除坏点
 // // 但是坏点本身内存没有剔除.不知道什么时候会清理这些不好的地图点？？？
@@ -176,7 +178,9 @@ void MapPoint::SetBadFlag()
     }
     // 擦除地图中包含的该地图点
     mpMap->EraseMapPoint(this);
+    mappoint_culling_ = true; // 自己设定地图点是被删除了！！ 测试变量，
 }
+
 // 当前地图点被哪个地图点代替
 MapPoint* MapPoint::GetReplaced()
 {
@@ -184,8 +188,9 @@ MapPoint* MapPoint::GetReplaced()
     unique_lock<mutex> lock2(mMutexPos);
     return mpReplaced;
 }
-// 用 pMP 地图点替换当前地图点。对当前地图点中那些没有与 pMP 关联的关键帧。然后将 pMP 与之进行关联。
-//    最后在地图中将该地图点删除。此时当前地图点变为坏点。
+
+//! \brief 用 pMP 地图点替换当前地图点。对当前地图点中那些没有与 pMP 关联的关键帧。然后将 pMP 与之进行关联。
+//!       最后在地图中将该地图点删除。此时当前地图点变为坏点。
 void MapPoint::Replace(MapPoint* pMP)
 {
     if(pMP->mnId==this->mnId) // 两个是一样的地图点，则不需要代替
@@ -203,6 +208,7 @@ void MapPoint::Replace(MapPoint* pMP)
         nfound = mnFound;
         mpReplaced = pMP;
     }
+
     // 与当前地图点有联系的关键帧。与 pMP 地图点进行关联
     for(map<KeyFrame*,size_t>::iterator mit=obs.begin(), mend=obs.end(); mit!=mend; mit++)
     {
@@ -223,6 +229,7 @@ void MapPoint::Replace(MapPoint* pMP)
                                 // 这里其实是有问题的，如果两个地图点在追踪时没有同时遍历，其实是可以直接增加的。但是如果两个地图点都在追踪线程中同样被追踪。那么这里增加其实是有重复的
                                 // 经过测试，这个函数在 ORBmatcher::Fuse（）函数中调用。然后在那个函数中打印两个替换地图点的 mnFirstId 发现会有相同的。那么在追踪过程中肯定会同时增加
                                 // mnFound mnVisible 这两个变量。那么这里直接把数量相加。其实是有问题的！
+                                // 但是从另种角度看：这个地图点本身在之前已经被追踪到，此时仅仅是替换，所以应当包含之前的观测变量。
     pMP->IncreaseVisible(nvisible); // 与上同理？？？？？
     pMP->ComputeDistinctiveDescriptors();
 
@@ -340,12 +347,14 @@ int MapPoint::GetIndexInKeyFrame(KeyFrame *pKF)
     else
         return -1;
 }
+
 // 判断当前地图点所属关键帧集中是否包含给定的关键帧。 true： 给定关键帧已经与当前地图点构成了联系
 bool MapPoint::IsInKeyFrame(KeyFrame *pKF)
 {
     unique_lock<mutex> lock(mMutexFeatures);
     return (mObservations.count(pKF));
 }
+
 // 每次该地图点被一个关键帧观测到就需要调用这个函数更新,以及在一次 BA 优化后，三维点更新后，也需要再次更新，因为 mWorldPos 变化了，导致下面三个变量都会发生变化：
 // mfMaxDistance mfMinDistance mNormalVector 这几个变量 对应论文 III.SYSTEM OVERVIEW 中 C 部分
 void MapPoint::UpdateNormalAndDepth()
@@ -382,12 +391,13 @@ void MapPoint::UpdateNormalAndDepth()
     const int level = pRefKF->mvKeysUn[observations[pRefKF]].octave; // 关键点所属金字塔层
     const float levelScaleFactor =  pRefKF->mvScaleFactors[level]; // 当前层尺度因子
     const int nLevels = pRefKF->mnScaleLevels; // 金字塔层数
+
     // 这里需要说明一点：图像金字塔是将采样得到的一堆图像。[参考:http://www.opencv.org.cn/opencvdoc/2.3.2/html/doc/tutorials/imgproc/pyramids/pyramids.html]
     // 金字塔最后一层的图像尺寸是最小的。图像分辨率是最低的。相当于把近东西拿到了远处。也就是说。我们有了金字塔层上面的一个关键点 kp。以及他与相机光心在世界坐标系下的距离 dist
     // 此时的 dist 是以原始图像为基准计算的[因为关键点坐标都转换为原始图像坐标系，然后三角化为地图点]。实际上该点距离就是 dist。??????
     {
         unique_lock<mutex> lock3(mMutexPos);
-        mfMaxDistance = dist*levelScaleFactor;
+        mfMaxDistance = dist*levelScaleFactor; // 因为前面
         mfMinDistance = mfMaxDistance/pRefKF->mvScaleFactors[nLevels-1];
         mNormalVector = normal/n;
     }
@@ -421,11 +431,21 @@ int MapPoint::PredictScale(const float &currentDist, KeyFrame* pKF)
 
     return nScale;
 }
-// currentDist: 当前世界坐标点到当前相机光心距离。
-// pF: 追踪时的帧
-// return: 当前距离对应的金字塔图像第几层
-//    功能：给定距离后，判断当前地图点在给定的帧下图像金字塔第几层
-//    具体操作未知？？？？？？？
+
+//! \brief 给定该地图点到 Frame 的距离后，判断当前地图点在给定的帧下图像金字塔第几层
+//! \param currentDist: 当前世界坐标点到当前相机光心距离。
+//! \param pF: 追踪帧
+//! \return: 当前距离对应的金字塔图像第几层
+//! \question 从下面代码中可以推断出如下式子，但是最后推断的结果不知道怎么回事？:::答 参考「问题已解决.md」 第 4 点
+//!     mfMaxDistance = dist * 1.2^L; // L : 是该地图点第一次在三角化时，相对于参考的关键帧关键点所在金字塔层数。 dist 是当时三角化后，点到参考关键帧光心距离。
+//!     ratio = mfMaxDistance/curDist = dist * 1.2^L/curDist;
+//!     nScale = log(ratio)/log(1.2)= lg(ratio);
+//!  ==>   1.2^nScale = ratio;
+//!  ==>   1.2^nScale = dist *1.2^L/curDist;
+//!  ==>   curDist * 1.2^nScale = dist * 1.2^L;
+//!  从最后这个公式可以推导出。程序中所说的尺度不变距离。 mfMaxDistance = dist * 1.2^L
+//!  实际上是一个定值。（在当前地图点对应参考关键帧不变的情况下）但是目前不理解这个值为什么是定值？？
+//!  这个值在 MapPoint::UpdateNormalAndDepth() 中更新的。
 int MapPoint::PredictScale(const float &currentDist, Frame* pF)
 {
     float ratio;

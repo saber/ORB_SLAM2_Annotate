@@ -79,7 +79,7 @@ cv::Mat Converter::toCvMat(const Eigen::Matrix3d &m)
 
     return cvMat.clone();
 }
-// 上面和这个函数实际重定义？？
+
 cv::Mat Converter::toCvMat(const Eigen::Matrix<double,3,1> &m)
 {
     cv::Mat cvMat(3,1,CV_32F);

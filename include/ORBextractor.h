@@ -29,6 +29,7 @@
 namespace ORB_SLAM2
 {
 
+//! \brief 主要提供了将一个区域分成 4 个子区域的方法。进而分配一张图像的所有关键点
 class ExtractorNode
 {
 public:
@@ -38,7 +39,7 @@ public:
 
     std::vector<cv::KeyPoint> vKeys;    // 当前节点中包含的关键点个数
     cv::Point2i UL, UR, BL, BR; //  一个节点对应的： UL: 左上角坐标   UR: 右上角坐标    BL: 左下角坐标   BR: 右下角坐标
-    std::list<ExtractorNode>::iterator lit; // 实际上指向自己。
+    std::list<ExtractorNode>::iterator lit;
     bool bNoMore;   // 表示该节点不可在细分，即该节点就是叶子节点了
 };
 
@@ -92,10 +93,10 @@ protected:
                                            const int &maxX, const int &minY, const int &maxY, const int &nFeatures, const int &level);
     // 老版本的计算关键点,此时系统没有使用
     void ComputeKeyPointsOld(std::vector<std::vector<cv::KeyPoint> >& allKeypoints);
-    std::vector<cv::Point> pattern; // 将模式数组两个点作为 cv::Point
+    std::vector<cv::Point> pattern; // orb 点选取模式
 
     // 下面针对 TUM 数据集参数
-    int nfeatures;  // 1000
+    int nfeatures;  // 1000 特征点个数
     double scaleFactor; // 1.2
     int nlevels;    // 8
     int iniThFAST;  // 20
@@ -103,7 +104,7 @@ protected:
     // size = nlevels
     std::vector<int> mnFeaturesPerLevel;    // 每一层的特征数量(根据一副图像总特征数，按照每层/scalFactor，可以依次计算每一层特征数量)
 
-    std::vector<int> umax;  //  保存关键点小块获取的模式，需要看 IC_Angle() 函数以及 ORBextractor构造函数即可明白！
+    std::vector<int> umax;  //  保存关键点周围像素块获取的模式，需要看 IC_Angle() 函数以及 ORBextractor构造函数即可明白！
 
     // 下面 4 个 vector 大小都是 nlevels = 8
     std::vector<float> mvScaleFactor;       //  [i] = [i-1] * scaleFactor   ; [0] = 1，内部值为 1 1.2 1.2^2 1.2^3...

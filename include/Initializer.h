@@ -72,11 +72,11 @@ private:
     void DecomposeE(const cv::Mat &E, cv::Mat &R1, cv::Mat &R2, cv::Mat &t);
 
 
-    // Keypoints from Reference Frame (Frame 1) （去除畸变的）
-    vector<cv::KeyPoint> mvKeys1;   // 初始化时参考图像去除畸变的关键点
+    // Keypoints from Reference Frame (Frame 1) （去除畸变的关键点）
+    vector<cv::KeyPoint> mvKeys1;
 
     // Keypoints from Current Frame (Frame 2)
-    vector<cv::KeyPoint> mvKeys2;   // 当前帧去畸变点集
+    vector<cv::KeyPoint> mvKeys2;
 
     // Current Matches from Reference to Current
     vector<Match> mvMatches12;  // 记录参考图像和当前图像匹配的点对 Match: std::pair<int,int> 第一个数是参考图像关键点序号，第二个数是当前图像关键点序号
@@ -84,7 +84,7 @@ private:
     vector<bool> mvbMatched1;   //size() 是 mvKeys1关键点个数， 哪个位是 ture，表示参考图像关键点有对应的匹配点
 
     // Calibration
-    cv::Mat mK; // 相机内参矩阵
+    cv::Mat mK; // 相机内参矩阵 3x3
 
     // Standard Deviation and Variance
     float mSigma, mSigma2;  // 初始化时为 1,此时表示测量误差为 1 个像素！可以参考 mvg 书上 75 页，就明白测量误差是什么了！
@@ -92,7 +92,8 @@ private:
     // Ransac max iterations == 200
     int mMaxIterations; // 计算基础矩阵 F，以及单应矩阵 H
 
-    // Ransac sets 用迭代 200 次，每次取 8 对点，所以是：vector< vector<size_t> >(mMaxIterations,vector<size_t>(8,0));
+    // Ransac sets
+    // 迭代 200 次，每次取 8 对点：vector< vector<size_t> >(mMaxIterations,vector<size_t>(8,0));
     vector<vector<size_t> > mvSets;   
 
 };

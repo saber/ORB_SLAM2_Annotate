@@ -108,8 +108,8 @@ bool LoopClosing::CheckNewKeyFrames()
 
 //! \see VII LOOP CLOSING
 //!     A Loop Candidates Detection
-//! 检测是否存在闭环。如果最后真正得到了符合一致性的闭环帧就会存放在 mvpEnoughConsistentCandidates 变量里。此时返回 true
-//! 具体操作：
+//! \brief 检测是否存在闭环。如果最后真正得到了符合一致性的闭环帧就会存放在 mvpEnoughConsistentCandidates 变量里。此时返回 true
+//! \details 具体操作：
 //!    1）获得当前闭环线程正在处理的关键帧,和其临近关键帧之间的最低得分 minScore
 //!    2) 通过最低得分，在关键帧数据库中找到潜在闭环关键帧(不属于其临近关键帧集)
 //!    3）检测一致性群和潜在闭环关键帧对应的群之间的一致性得分。获得初始闭环关键帧。{这个过程比较复杂，可以根据下面图示及其说明进行理解}
@@ -122,7 +122,7 @@ bool LoopClosing::DetectLoop()
         mlpLoopKeyFrameQueue.pop_front();
         // Avoid that a keyframe can be erased while it is being process by this thread
         mpCurrentKF->SetNotErase(); // 局部建图线程中无法擦除该关键帧
-        std::cout << "mlpLoopKeyFrameQueue.size() " << mlpLoopKeyFrameQueue.size() << std::endl;
+//        std::cout << "mlpLoopKeyFrameQueue.size() " << mlpLoopKeyFrameQueue.size() << std::endl;
     }
 
     //If the map contains less than 10 KF or less than 10 KF have passed from last loop detection
@@ -276,10 +276,10 @@ bool LoopClosing::DetectLoop()
 //! \details
 //!     1) 对于在 DetectLoop() 函数中计算出来的所有潜在闭环关键帧。按照 Bow 方法，找到与当前处理的关键帧 mpCurrentKF 匹配点对。
 //!       只有匹配点对大于等于 20 个，才能建立 sim3 求解器 Sim3Solver。{这里用 BoW 方法的原因是，此时关键帧之间的变换关系未知。只能通过词袋的方式找潜在配对点}
-//!     2) 对于有求解器的所有潜在闭环关键帧进行 RANSAC 迭代。只有满足条件(下面会说明)的潜在闭环帧才能利用 sim3 方式寻找更多的匹配。
+//!     2) 对于有求解器的所有潜在闭环关键帧进行 RANSAC 迭代。只有满足条件(下面会说明)的潜在闭环帧才能利用 SearchBysim3 方式寻找更多的匹配。
 //!       然后进行 OptimizeSim3（）优化。得到比较好的 sim3 变换。优化完成后的内点个数大于 20 ，保留该帧为 mpMatchedKF， 然后退出整个循环：遍历潜在关键帧集。
 //!          条件（在 iterate() 函数完成的）： 找到与当前 mpCurrentKF 的相似变换 sim3。然后检查内点集。内点集大于某个值（足够多）才算是符合条件
-//!     3) 获取步骤 2 得到的 mpMatchedKF 关键帧的所有临近关键帧对应的地图点（不能重复），然后与 mpCurrentKF 关键帧寻找更多的匹配。
+//!     3) 获取步骤 2 得到的 mpMatchedKF 关键帧的所有临近关键帧对应的地图点（不能重复），然后与 mpCurrentKF 关键帧寻找更多的匹配按照 SearchByProjection 方式。
 //!        只有匹配的点对足够大于 40 才算是成功检测到了闭环，然后返回 true。此时 mpMatchedKF 会用来纠正闭环误差，即在 CorrectLoop() 函数用到。
 //! \return 在 DetectLoop() 函数中检测的潜在闭环关键帧中，如果成功找到了一个关键帧，且通过一系列的条件检验。那么才会表示真正检查出来一个关键帧。
 //!         然后直接返回 true。
@@ -354,7 +354,7 @@ bool LoopClosing::ComputeSim3()
             bool bNoMore; // ture:当前对应的闭环帧不好，应该被丢弃
 
             Sim3Solver* pSolver = vpSim3Solvers[i];
-            cv::Mat Scm  = pSolver->iterate(5,bNoMore,vbInliers,nInliers); // 返回是满足条件的变换矩阵 T12 (带有尺度 s)
+            cv::Mat Scm  = pSolver->iterate(5,bNoMore,vbInliers,nInliers); // 返回是满足条件的变换矩阵 T12 (带有尺度 s)，1 表示当前CurrentKF，2表示潜在闭环帧
 
             // If Ransac reachs max. iterations discard keyframe
             // 不好的关键帧，需要丢弃
@@ -380,7 +380,9 @@ bool LoopClosing::ComputeSim3()
                 cv::Mat R = pSolver->GetEstimatedRotation();
                 cv::Mat t = pSolver->GetEstimatedTranslation();
                 const float s = pSolver->GetEstimatedScale();
-                matcher.SearchBySim3(mpCurrentKF,pKF,vpMapPointMatches,s,R,t,7.5); // 再次找到新的匹配点(基准关键帧和检测的潜在闭环帧)对放在 vpMapPointMatches 中
+
+                // 根据计算出来的两个关键帧的相似变换，再次找到新的匹配点对(基准关键帧和检测的潜在闭环帧)，放在 vpMapPointMatches 中
+                matcher.SearchBySim3(mpCurrentKF,pKF,vpMapPointMatches,s,R,t,7.5);
 
                 g2o::Sim3 gScm(Converter::toMatrix3d(R),Converter::toVector3d(t),s); // 传入下面函数后，会自动更新。 由 pKF2 -->CurrentKF 的变换
                 const int nInliers = Optimizer::OptimizeSim3(mpCurrentKF, pKF, vpMapPointMatches, gScm, 10, mbFixScale); // pKF--->mpCurrentKF 的变换
@@ -394,7 +396,7 @@ bool LoopClosing::ComputeSim3()
                     mg2oScw = gScm * gSmw; // 相似变换乘法
                     mScw = Converter::toCvMat(mg2oScw);
 
-                    mvpCurrentMatchedPoints = vpMapPointMatches; // 实际有效的匹配点对 关键帧 1 关键点i ---> pKF2地图点
+                    mvpCurrentMatchedPoints = vpMapPointMatches; // 实际有效的匹配点对 关键帧 1 关键点i ---> pKF2地图点.这里关键帧 1 是只 基准闭环帧，pkF2 表示检测到的闭环帧
                     break;
                 }
             }
@@ -409,6 +411,7 @@ bool LoopClosing::ComputeSim3()
         return false;
     }
 
+    // 此时已经算是找到了一个初始闭环帧，后面还会再次判断
     // Retrieve MapPoints seen in Loop Keyframe and neighbors
     // 获取 mpMatchedKF 的临近关键帧的所有地图点
     vector<KeyFrame*> vpLoopConnectedKFs = mpMatchedKF->GetVectorCovisibleKeyFrames(); // 注意这里是 Loop Keyframe 的 临近关键帧集
@@ -462,6 +465,7 @@ bool LoopClosing::ComputeSim3()
 
 //! \note
 //! \brief
+//! \details
 //!     1) 停止闭环线程，防止添加新的关键帧和地图点
 //!     2) 获取闭环线程正在处理的关键帧(mpCurrentKF)的临近关键帧集(包含自身)。计算他们纠正后的 sim3 通过 mpCurrentKF 的 sim3。
 //!        将他们对应的地图点都通过对应的 sim3 更新一下位置坐标。然后将他们关键帧本身 pose 设置为 [R t/s]（这个是由 sim3 [sR t] 得到的）
@@ -511,7 +515,7 @@ void LoopClosing::CorrectLoop()
     mvpCurrentConnectedKFs.push_back(mpCurrentKF); // 自己也加入其中！
 
     KeyFrameAndPose CorrectedSim3, NonCorrectedSim3; // CorrectedSim3 当前关键帧 mpCurrentKF 的临近关键帧(包含本身)到世界的相似变换
-                                                     // NonCorrectedSim3 当期关键帧的临近关键帧到世界的普通刚体变换。只不过用了 sim3 形式。尺度为 1
+                                                     // NonCorrectedSim3 当前关键帧的临近关键帧到世界的普通刚体变换。只不过用了 sim3 形式。尺度为 1
     CorrectedSim3[mpCurrentKF]=mg2oScw;
     cv::Mat Twc = mpCurrentKF->GetPoseInverse();
 
@@ -519,9 +523,10 @@ void LoopClosing::CorrectLoop()
     {
         // Get Map Mutex
         unique_lock<mutex> lock(mpMap->mMutexMapUpdate);
+
         // 利用 mpCurrentKF 与世界的相似变换结果计算其临近关键帧与世界的相似变换，称为 g2oCorrectedSiw
-        // 为什么仅仅要临近的关键帧和世界的相似变换？？？按理说，闭环出现的话纠正结果可以从检测的闭环帧到当前闭环线程正在处理的关键帧。之间的所有关键帧都要求纠正误差
-        // 是因为共视图在构建时本身已经尽可能包含了所有关键帧？？？还是说为了减少计算量？？？
+        // 为什么仅仅要临近的关键帧和世界的相似变换？？？按理说，闭环出现的话纠正结果可以从检测的闭环帧到当前闭环线程正在处理的关键帧。
+        // 之间的所有关键帧都要求纠正尺度,是因为共视图在构建时本身已经尽可能包含了所有关键帧？？？还是说为了减少计算量？？？
         for(vector<KeyFrame*>::iterator vit=mvpCurrentConnectedKFs.begin(), vend=mvpCurrentConnectedKFs.end(); vit!=vend; vit++)
         {
             KeyFrame* pKFi = *vit;
@@ -547,8 +552,9 @@ void LoopClosing::CorrectLoop()
         }
 
         // Correct all MapPoints observed by current keyframe and neighbors, so that they align with the other side of the loop
-        // 把 mpCurrentKF 的临近关键帧对应的所有地图点的世界坐标用 sim3 更新一下。具体步骤（把地图点变换到相机坐标系，然后通过对应相机的 Swi 把点变换到世界坐标系下）
-        // 用 sim3 更新临近关键帧对应的 pose。就是把 sim3 = [SR t] ---> [R t/s] 等效的刚体变换。
+        // 把 mpCurrentKF 的临近关键帧对应的所有地图点的世界坐标用 sim3 尺度纠正一下保证统一尺度。
+        // 具体步骤（把地图点变换到相机坐标系，然后通过对应相机的 Swi 把点变换到世界坐标系下）
+        // 用 sim3 纠正临近关键帧对应的刚体 pose。就是把 sim3 = [SR t] ---> [R t/s] 等效的刚体变换。
         for(KeyFrameAndPose::iterator mit=CorrectedSim3.begin(), mend=CorrectedSim3.end(); mit!=mend; mit++)
         {
             KeyFrame* pKFi = mit->first;
@@ -599,7 +605,7 @@ void LoopClosing::CorrectLoop()
 
         // Start Loop Fusion
         // Update matched map points and replace if duplicated
-        // 用匹配好的地图点代替或新增到当前关键帧 mpCurrent。
+        // 用匹配好的地图点代替或新增到当前关键帧 mpCurrent。mvpCurrentMatchedPoints 是以基准闭环帧关键点为基准。
         for(size_t i=0; i<mvpCurrentMatchedPoints.size(); i++)
         {
             if(mvpCurrentMatchedPoints[i])
@@ -644,6 +650,7 @@ void LoopClosing::CorrectLoop()
         // Update connections. Detect new links.
         pKFi->UpdateConnections(); // 更新共视图(增加新的链接关系)
         LoopConnections[pKFi]=pKFi->GetConnectedKeyFrames();
+
         // 仅仅保留新加入的链接关系并且不能包含 mpCurrentKF 的临近关键帧。这样才能保证新增加的边就是闭环两侧的关键帧之间的形成的边。
         for(vector<KeyFrame*>::iterator vit_prev=vpPreviousNeighbors.begin(), vend_prev=vpPreviousNeighbors.end(); vit_prev!=vend_prev; vit_prev++)
         {
@@ -695,6 +702,7 @@ void LoopClosing::SearchAndFuse(const KeyFrameAndPose &CorrectedPosesMap)
 
         // Get Map Mutex
         unique_lock<mutex> lock(mpMap->mMutexMapUpdate); // 下面需要改变地图点，因此需要加锁
+
         // 替换 pKF 对应的误差较大的地图点
         const int nLP = mvpLoopMapPoints.size();
         for(int i=0; i<nLP;i++)

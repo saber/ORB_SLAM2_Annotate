@@ -98,11 +98,11 @@ public:
 
     // Initialization Variables (Monocular)
     std::vector<int> mvIniLastMatches;
-    std::vector<int> mvIniMatches;  // mvIniMatches[i] = index; 表示是参考图像序号 i 关键点，对应匹配 mCurrentFrame 图像上的序号为 index 的关键点。
-                                    // 关键点为 mCurrentFrame.unKeysUn[index]，如果 index=-1 表示没有匹配上,在成功三角度化后，这里会把没有成功三角化的位置置位负。
-    std::vector<cv::Point2f> mvbPrevMatched;    // mvbPrevMatched[i]=point; // 表示参考图像第i个关键点，对应匹配当前图像的关键点 point,如果没有匹配上那么 point是空的。
+    std::vector<int> mvIniMatches; // mvIniMatches[i] = index; 参考帧和当前帧的匹配关系（以参考关键帧为基准）。参考帧 i 关键点，对应匹配 当前帧图像上 index 的关键点。
+                                   // 关键点为 mCurrentFrame.unKeysUn[index]，如果 index=-1 表示没有匹配上,在成功三角度化后，这里会把没有成功三角化的位置置位负。
+    std::vector<cv::Point2f> mvbPrevMatched; // mvbPrevMatched[i]=point; // 表示参考图像第 i个关键点，对应匹配当前帧图像的关键点 point,如果没有匹配上那么 point是空的。
     std::vector<cv::Point3f> mvIniP3D;  // 三角化的初始地图点{经过多层筛选当前帧和参考帧进行匹配的有效点 3d 坐标} 世界坐标的{相对于参考帧}
-    Frame mInitialFrame;    // 初始参考帧,正常初始化时，就以当前初始参考帧作为本地世界坐标系的起点的。此时设置 pose = 单位 4x4 矩阵
+    Frame mInitialFrame; // 正常初始化时，就以当前初始参考帧作为本地世界坐标系的起点的。此时设置 pose = 单位 4x4 矩阵
 
     // Lists used to recover the full camera trajectory at the end of the execution.
     // Basically we store the reference keyframe for each frame and its relative transformation
@@ -164,13 +164,20 @@ protected:
     KeyFrameDatabase* mpKeyFrameDB;
 
     // Initalization (only for monocular)
-    Initializer* mpInitializer; // 构造时 = null,作用：对应论文中 Automatic Map Initialization部分，在两个线程中计算 F/H 矩阵，根据模型选择 H或者F 来恢复两帧相机运动
+    Initializer* mpInitializer; // 构造时 = null,作用：对应论文中 Automatic Map Initialization 部分，在两个线程中计算 F/H 矩阵，根据模型选择 H或者F 来恢复两帧相机运动
 
     //Local Map 应该是论文 V TRACKING --- D Track Local Map 所说的局部地图
-    KeyFrame* mpReferenceKF;    // 在单目初始化后，插入的当前关键帧,是为了后续追踪过程中新来一帧和这个关键帧进行匹配。
-                                // 在插入新的关键帧后(CreateNewKeyFrame())，这里就会变为刚刚插入的哪个关键帧。
-                                // 或者在 UpdateLocalKeyFrames() 函数中更新了这个帧，这个函数在这里被调用 Tracking::TrackLocalMap()。
-                                // 表示与当前帧有着最强共视关系的关键帧且其隶属于 K1关键帧集。然后进行更新。然后用其与下一帧进行匹配！{当然这里是用其更新 LastFrame.mnReferenceKF 类似的变量}
+    KeyFrame* mpReferenceKF; // 作用: 在 Tracking::TrackReferenceKeyFrame() 中使用。目的是追踪帧和这个关键帧进行匹配。
+                             // 有三个地方会从新赋值，可以从该变量的作用上理解。
+                             // 1) 单目初始化时，插入当前关键帧。
+                             // 2) 在插入新的关键帧后(CreateNewKeyFrame())，赋值为新的关键帧。
+                             // 3) Tracking::UpdateLocalKeyFrames() 函数中更新了这个帧，
+                             //   这个函数在这里被调用 Tracking::TrackLocalMap()。
+                             //   与当前追踪帧有最强共视关系的关键帧且其隶属于 K1 关键帧集。
+                             //   然后用其与下一帧进行匹配！
+                             // 总结：三种方式都是为了能够在正常追踪时，在调用 TrackReferenceKeyFrame()
+                             //   时，能够让追踪帧和参考帧有最大共视关系。这样
+                             //  在理论上会与当前追踪帧更好匹配
     std::vector<KeyFrame*> mvpLocalKeyFrames; // 在单目初始化时，加入了参考关键帧和当前关键帧,这个可能也会用在定位模式？？ 。跟踪时。在第一次进入 Tracking::TrackLocalMap()函数后，
                                             // 进而进入 Tracking::UpdateLocalKeyFrames() 函数，在里面就会立刻清零。然后更新这个值为与当前帧有着共同观测点的关键帧！
                                             // 将 Covisibility Graph 中与上面的关键帧组有链接关系的其他关键帧 再次加入到关键帧组。但是程序中限制了局部关键帧的最大个数！
@@ -211,7 +218,7 @@ protected:
     //Last Frame, KeyFrame and Relocalisation Info
     KeyFrame* mpLastKeyFrame; // 记录上次关键帧, 在单目初始化时，就是当前帧
     Frame mLastFrame;   // 单目初始化之后当前帧(也是关键帧)，然后又从新赋值给他,之后就是每次成功跟踪，然后更新一次为刚刚跟踪的这个普通 Frame 帧,
-                        // 这里就是普通的帧。通过这个帧提供给下一帧匹配时位姿初始值然后通过 3d-2d 匹配优化
+                        // 这里就是普通帧。通过这个帧提供给下一帧匹配时位姿初始值然后通过 3d-2d 匹配优化
     unsigned int mnLastKeyFrameId; // 在 CreateNewKeyFrame() 关键帧后，更新当前值,在单目初始化时，就是成功初始化后的当前帧的 id （普通帧id）
     unsigned int mnLastRelocFrameId; // init = 0,在跟踪丢失时，下一帧会进行重定位，如果重定位成功。那么这里记录重定位成功的跟踪帧 id
 

@@ -129,7 +129,7 @@ protected:
                                                           // 那么会进行纠正闭环误差）
     std::vector<KeyFrame*> mvpCurrentConnectedKFs; // 闭环正在处理的 mpCurrentKF 关键帧的临近关键帧集（包括自身）
     std::vector<MapPoint*> mvpCurrentMatchedPoints; // 当前成功检测到闭环时，记录的实际有效的匹配点对(包括最后在 sim3 优化后再次寻找潜在匹配点对):
-                                                   // mpCurrentKF 关键点 ---> 潜在闭环关键帧的地图点。淡然这里的 mpCurrentKF 有些关键点可能有自己的地图点，也有些可能没有。
+                                                   // mpCurrentKF 关键点 ---> 潜在闭环关键帧的地图点。当然这里的 mpCurrentKF 有些关键点可能有自己的地图点，也有些可能没有。
     std::vector<MapPoint*> mvpLoopMapPoints; // 使用该值前会 clear() size,保存的是 mpMatchedKF(检测到的真正的闭环帧) 对应的临近关键帧的所有地图点。包含 mpMatchedKF 对应的地图点
     cv::Mat mScw; // 世界到当前正在处理的关键帧 mpCurrentKF 之间的相似变换。cv::Mat 形式的下面的 mg2oScw
     g2o::Sim3 mg2oScw; // 世界到 mpCurrentKF 相机的相似变换（中间利用了检测到的闭环关键帧）,为了将所有 mpMatchedKF 临近关键帧的所有地图点投影到 mpCurrentKF ,再次找更多的匹配关系

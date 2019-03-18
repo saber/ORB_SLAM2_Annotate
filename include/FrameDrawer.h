@@ -55,8 +55,9 @@ protected:
     // Info of the frame to be drawn
     cv::Mat mIm; // 在跟踪线程中，刚刚处理完毕的图像
     int N; // 图像 ORB 提取的关键点个数
-    vector<cv::KeyPoint> mvCurrentKeys; // 图像对应的原始地图点(有可能是未去除畸变的点集，根据数据集图像是否去除畸变来决定)
-    vector<bool> mvbMap, mvbVO; // init: N 个 false,mvbMap:在正式追踪过程中标记当前地图点是否被关键帧观测过。 这个与上面的 mvCurrentKeys 对应，然后没被观测的关键点就不显示
+    vector<cv::KeyPoint> mvCurrentKeys; // 图像对应的原始地图点(未去除畸变的点集，以便进行显示)
+    vector<bool> mvbMap, mvbVO; // init: N 个 false,mvbMap:在正式追踪过程中标记当前地图点是否被关键帧观测过。
+                                // 这个与上面的 mvCurrentKeys 对应，然后没被观测的关键点就不显示
                                 // mvbVO: 如果地图点没有被观测过，此时这里对应位置为 true。还不知道如何使用？
     bool mbOnlyTracking; // 默认为追踪模式即 false
     int mnTracked, mnTrackedVO; // mnTracked: 当前图像有效的地图点个数(也是用来显示当前匹配的个数)

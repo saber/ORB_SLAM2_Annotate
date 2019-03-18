@@ -64,7 +64,7 @@ Tracking::Tracking(System *pSys, ORBVocabulary* pVoc, FrameDrawer *pFrameDrawer,
     K.at<float>(1,2) = cy;
     K.copyTo(mK);
 
-    // 畸变参数
+    // 畸变参数，针对单目，双目不起作用
     cv::Mat DistCoef(4,1,CV_32F);
     DistCoef.at<float>(0) = fSettings["Camera.k1"];
     DistCoef.at<float>(1) = fSettings["Camera.k2"];
@@ -167,11 +167,7 @@ void Tracking::SetViewer(Viewer *pViewer)
     mpViewer=pViewer;
 }
 
-// 输入： imRectLeft: 左摄像头彩色图像(RGB/RGBA)
-//       imRectRight: 右摄像头彩色图像
-//       timestamp: 图像对应时间戳
-// 返回： 世界到相机坐标系的变化矩阵
-// 功能： 将输入左右目图像(RGB/RGBA)转化为灰度图像并且构造 mCurrentFrame，进行追踪
+//! \brief 将输入图像(RGB/RGBA)转化为灰度图像并且构造 mCurrentFrame，进行追踪
 cv::Mat Tracking::GrabImageStereo(const cv::Mat &imRectLeft, const cv::Mat &imRectRight, const double &timestamp)
 {
     mImGray = imRectLeft;
@@ -242,11 +238,7 @@ cv::Mat Tracking::GrabImageRGBD(const cv::Mat &imRGB,const cv::Mat &imD, const d
     return mCurrentFrame.mTcw.clone();
 }
 
-// 输入： im: 输入彩色图像(RGB/RGBA)
-//       timestamp: 图像对应时间戳
-// 返回： 世界到相机坐标系的变换矩阵
-// 功能： 将输入图像(RGB/RGBA)转化为灰度图像并且构造 mCurrentFrame，进行追踪
-
+//! \brief 将输入图像(RGB/RGBA)转化为灰度图像并且构造 mCurrentFrame，进行追踪
 cv::Mat Tracking::GrabImageMonocular(const cv::Mat &im, const double &timestamp)
 {
     mImGray = im;   // 直接对应值拷贝,此时是彩色图像
@@ -321,13 +313,14 @@ void Tracking::Track()
             if(mState==OK)
             {
                 // Local Mapping might have changed some MapPoints tracked in last frame
-                CheckReplacedInLastFrame(); // 检查更新上一帧地图点(可能被其他地图点代替了，需要更新下)
+                // 在局部建图线程中会有地图点创建以及最近地图点的剔除，在使用上一帧匹配时，对应的地图点可能发生变化。
+                CheckReplacedInLastFrame();
 
                 if(mVelocity.empty() || mCurrentFrame.mnId<mnLastRelocFrameId+2) // 在追踪失败时，然后通过重定位模式追踪成功，此时的速度模型就会为空！或者第一次初始化时，速度模型会为空
                 {   // 这里这么做是因为在初始化时，refer 帧，和第二个帧，都作为了关键帧，此时我们用当前帧和前一帧匹配就是普通帧和关键帧的匹配.
                     // 之后通过 3d-2d 进行位姿优化。pose 初始值是上一个记录的关键帧
                     // 这个函数内部就是调用的 关键帧和普通帧之间的搜索匹配。
-                    std::cout << "first enter: " << std::endl;
+//                    std::cout << "first enter: " << std::endl;
                     bOK = TrackReferenceKeyFrame(); // 这里可能会出现当前帧的匹配失败且pose为空！
                 }
                 else
@@ -417,8 +410,9 @@ void Tracking::Track()
                 }
             }
         }
+
         // 追踪后(无关成功与否)。。。
-        mCurrentFrame.mpReferenceKF = mpReferenceKF; // 记录当前追踪帧和哪个参考关键帧进行的匹配，为下一次跟踪帧来临。计算 pose 做准备{因为}
+        mCurrentFrame.mpReferenceKF = mpReferenceKF; // 记录当前追踪帧和哪个参考关键帧进行的匹配，为下一次跟踪帧计算 pose 做准备{因为}
 
         // If we have an initial estimation of the camera pose and matching. Track the local map.
         if(!mbOnlyTracking)
@@ -434,7 +428,8 @@ void Tracking::Track()
             if(bOK && !mbVO)
                 bOK = TrackLocalMap();
         }
-        // 到这里有两个拦路虎：1、初始跟踪2、TrackLocalMap() 只有这两个同时表示跟踪成功 bOK 才等于 true!
+
+        // 到这里之前有两个拦路虎：1、初始跟踪是不是成功 2、TrackLocalMap() 只有这两个同时表示跟踪成功 bOK 才等于 true!
         if(bOK)
             mState = OK;
         else
@@ -513,8 +508,17 @@ void Tracking::Track()
         mLastFrame = Frame(mCurrentFrame); // 当前帧 pose 已经优化好！
     }
 
+    // 下面两个分支的结果不会影响跟踪过程！
     // Store frame pose information to retrieve the complete camera trajectory afterwards.
-    if(!mCurrentFrame.mTcw.empty())
+    if(!mCurrentFrame.mTcw.empty()) // 进入这里的条件：
+                                    // 1) 在第一次使用 Tracking::TrackReferenceKeyFrame() 时
+                                    // 最后返回是失败的，但是 mCurrentFrame.mTcw 已经有一个初始值。
+                                    // 不过从分析来看，这种情况发生的可能性很小。不过理论上确实会发生。
+                                    // 2) 经过 1 时，下一帧就会进入重定位模式。然后重定位虽然失败了。
+                                    // 但是让处理下一帧时 mCurrentFrame.mTcw 有初始值。
+                                    // 3) 确实追踪成功
+                                    // 总结： 1) 2) 在理论上是会发生的。不过没有做过试验。
+
     {
         cv::Mat Tcr = mCurrentFrame.mTcw*mCurrentFrame.mpReferenceKF->GetPoseInverse(); // 参考关键帧到当前跟踪帧的一个变换。
         mlRelativeFramePoses.push_back(Tcr); // 这个在跟踪和最后保留轨迹时会用到
@@ -523,7 +527,13 @@ void Tracking::Track()
         mlFrameTimes.push_back(mCurrentFrame.mTimeStamp);
         mlbLost.push_back(mState==LOST);
     }
-    else // 这里是在重定位失败的时候导致的 pose 为空
+    else // 进入这里的条件：
+         // 1、当正式跟踪时与参考帧进行匹配。也就是上面先调用这个函数进行追踪：
+         //     Tracking::TrackReferenceKeyFrame()。此时执行内部函数时，
+         //     第一次寻找匹配就失败了。那么 mCurrentFrame.mTcw 一定为空。此时进入这个分支
+         //  2、除了 1 的情况外导致的当前追踪失败。那么接下来处理的一个追踪帧就会用重定位模式。
+         //    如果重定位「完全」失败，也就是内部没有让 mCurrentFrame.mTcw 有初始值。
+         //   此时 mCurrentFrame.mTcw 也是空的。也会进入这个分支来。
     {
         // This can happen if tracking is lost
         mlRelativeFramePoses.push_back(mlRelativeFramePoses.back());
@@ -599,7 +609,7 @@ void Tracking::MonocularInitialization()
         {
             mInitialFrame = Frame(mCurrentFrame);
             mLastFrame = Frame(mCurrentFrame);
-            mvbPrevMatched.resize(mCurrentFrame.mvKeysUn.size());   //mvKeysUn.size == mvKeys.size 这里是去除畸变
+            mvbPrevMatched.resize(mCurrentFrame.mvKeysUn.size()); // mvKeysUn.size == mvKeys.size 这里是去除畸变
             for(size_t i=0; i<mCurrentFrame.mvKeysUn.size(); i++)
                 mvbPrevMatched[i]=mCurrentFrame.mvKeysUn[i].pt;
 
@@ -627,7 +637,8 @@ void Tracking::MonocularInitialization()
         }
 
         // Find correspondences
-        ORBmatcher matcher(0.9,true);   // ?? 这个参数含义？？
+        ORBmatcher matcher(0.9,true);
+
         // 特征描述子匹配    // mvIniMatches 对应的 vector 大小在下面的函数中才会扩充
         // mvIniMatches:   保存的是 mInitialFrame 图像 与 mCurrentFrame 图像配准好的关键点序号（对应 mCurrentFrame 图像）,
         //                 此时 index = mvIniMatches[i] 如果值不是 -1 ，那么说明 mInitialFrame 图像上序号 i 对应的关键点可以在
@@ -650,10 +661,12 @@ void Tracking::MonocularInitialization()
             mpInitializer = static_cast<Initializer*>(NULL);
             return;
         }
+
         // 经过 H 或 F 分解得到的
         cv::Mat Rcw; // Current Camera Rotation
         cv::Mat tcw; // Current Camera Translation
-        vector<bool> vbTriangulated; // Triangulated Correspondences (mvIniMatches) vbTriangulated[i] = true: 表示参考图像 i关键点是符合的被成功三角化的关键点序号
+        vector<bool> vbTriangulated; // Triangulated Correspondences (mvIniMatches) vbTriangulated[i] = true: 表示参考图像 i 关键点是符合的被成功三角化的关键点序号
+
         // Map Initialization ，选择 H 或 F，然后求解变换矩阵
         // 这里仅仅处理了参考帧和当前帧匹配成功的情况。对于恢复失败的话，程序会自动就获取下一帧图像，和之前参考帧进行匹配了。
         if(mpInitializer->Initialize(mCurrentFrame, mvIniMatches, Rcw, tcw, mvIniP3D, vbTriangulated)) // 成功初始化对应论文 IV:AUTOMATIC MAP INITIALIZATION
@@ -678,7 +691,8 @@ void Tracking::MonocularInitialization()
         }
     }
 }
-// Map包含如下指针： KeyFrame、MapPoints
+
+// Map 包含如下指针： KeyFrame、MapPoints
 // KeyFrame 反过来包含 Map 指针
 // MapPoints 也包含 Map 指针
 //    通过上面的关系可以发现。三者之间是一个耦合关系
@@ -698,15 +712,16 @@ void Tracking::CreateInitialMapMonocular()
     mpMap->AddKeyFrame(pKFcur);
 
     // Create MapPoints and associate to keyframes
-    for(size_t i=0; i<mvIniMatches.size();i++)
+    for(size_t i=0; i<mvIniMatches.size();i++) // 以参考关键帧关键点为基准
     {
-        if(mvIniMatches[i]<0)   // 没有被成功初始化的关键点{没有匹配好，以及匹配成功但是没有三角化成功的点}
+        if(mvIniMatches[i]<0)   // 没有被成功初始化的关键点{没有匹配好，以及匹配成功但是没有三角化成功的点},
             continue;
 
         //Create MapPoint.
         cv::Mat worldPos(mvIniP3D[i]);
 
         MapPoint* pMP = new MapPoint(worldPos,pKFcur,mpMap);
+
         // 添加当前关键帧对应的新建立的地图点
         pKFini->AddMapPoint(pMP,i);
         pKFcur->AddMapPoint(pMP,mvIniMatches[i]);
@@ -714,6 +729,7 @@ void Tracking::CreateInitialMapMonocular()
         // 观测实际上就是记录地图点和关键帧之间的联系
         pMP->AddObservation(pKFini,i);
         pMP->AddObservation(pKFcur,mvIniMatches[i]);
+
         // 地图点被关键帧观测到后一定要更新的量
         pMP->ComputeDistinctiveDescriptors(); // 计算当前地图点对应的最好的描述子
         pMP->UpdateNormalAndDepth();
@@ -732,6 +748,7 @@ void Tracking::CreateInitialMapMonocular()
 
     // Bundle Adjustment
     cout << "New Map created with " << mpMap->MapPointsInMap() << " points" << endl;
+
     // 全局 BA 优化，优化刚刚加入的关键帧 pose 和 有效的 3d 路标点
     Optimizer::GlobalBundleAdjustemnt(mpMap,20);
 
@@ -746,9 +763,11 @@ void Tracking::CreateInitialMapMonocular()
         return;
     }
 
+    // 统一单目全局尺度，更新地图点尺度
+
     // Scale initial baseline
     cv::Mat Tc2w = pKFcur->GetPose();
-    Tc2w.col(3).rowRange(0,3) = Tc2w.col(3).rowRange(0,3)*invMedianDepth; // 按照中位数深度对平移向量进行归一化
+    Tc2w.col(3).rowRange(0,3) = Tc2w.col(3).rowRange(0,3)*invMedianDepth; // 按照中位数深度对平移向量进行归一化,如果换做 imu 固定尺度如何做？
     pKFcur->SetPose(Tc2w);
 
     // Scale points // 对初始帧 MapPoint 归一化即可相应的 当前帧 mappoint 也被归一化！
@@ -761,6 +780,7 @@ void Tracking::CreateInitialMapMonocular()
             pMP->SetWorldPos(pMP->GetWorldPos()*invMedianDepth); // 对地图点按照中位数深度进行尺度归一化，
         }
     }
+
     // 局部建图线程插入关键帧
     mpLocalMapper->InsertKeyFrame(pKFini);
     mpLocalMapper->InsertKeyFrame(pKFcur);
@@ -768,6 +788,7 @@ void Tracking::CreateInitialMapMonocular()
     mCurrentFrame.SetPose(pKFcur->GetPose()); // 更新前面 BA 优化后的新的 pose
     mnLastKeyFrameId=mCurrentFrame.mnId;
     mpLastKeyFrame = pKFcur;
+
     // 增加局部关键帧和地图点
     mvpLocalKeyFrames.push_back(pKFcur);
     mvpLocalKeyFrames.push_back(pKFini);
@@ -777,16 +798,16 @@ void Tracking::CreateInitialMapMonocular()
 
     mLastFrame = Frame(mCurrentFrame); // 这里把当前帧更新了参考关键帧，位姿，地图点，标号信息
 
-    mpMap->SetReferenceMapPoints(mvpLocalMapPoints); // 为后面初始化完成时，进行普通帧跟踪做准备。因为在普通帧追踪时。我们会根据匀速运动模型。
-                                                    // 估计一个普通帧初始的 pose。然后后面需要根据这个局部地图点全部投影到哪个普通帧，再次优化匹配！
-
+    mpMap->SetReferenceMapPoints(mvpLocalMapPoints); // 这里仅仅为了显示！跟踪过程的局部地图点
     mpMapDrawer->SetCurrentCameraPose(pKFcur->GetPose()); // 这里其实用 mCurrentFrame.mTcw 即可表达更清晰些
 
     mpMap->mvpKeyFrameOrigins.push_back(pKFini); // 保存初始参考帧。在 LoopClosing.cc 中用了这个变量
 
     mState=OK;  // 正式初始化完毕后，才会正式开始追踪！
 }
-// 如果上一帧对应的地图点被某个地图点代替，此时需要更新对应位置的地图点
+
+//! \brief 检查上一帧对应的匹配地图点，是不是被其他地图点替换了。
+//!    如果上一帧对应的地图点被某个地图点代替，此时需要更新对应位置的地图点
 void Tracking::CheckReplacedInLastFrame()
 {
     for(int i =0; i<mLastFrame.N; i++)
@@ -804,9 +825,10 @@ void Tracking::CheckReplacedInLastFrame()
     }
 }
 
-// 只有当前普通帧和上一个参考关键帧(带有地图点的关键点)匹配对数符合条件。才算是追踪成功
-//    这里有两次条件筛选： 一是通过 SearchByBoW() 匹配成功的对数 >=15
-//                      二是经过一匹配后，再次位姿优化后，经过剔除一部分外点后，剩下的有效匹配对数 >=10 对
+//! \note 只有当前普通帧和上一个参考关键帧(带有地图点的关键点)匹配对数符合条件。才算是追踪成功
+//! \details 这里有两次条件筛选才算是追踪成功：
+//!     1)通过 SearchByBoW() 匹配成功的对数 >=15
+//!     2)经过一匹配后，再次位姿优化后，经过剔除一部分外点后，剩下的有效匹配对数 >=10 对
 bool Tracking::TrackReferenceKeyFrame()
 {
     // Compute Bag of Words vector
@@ -823,7 +845,9 @@ bool Tracking::TrackReferenceKeyFrame()
         return false;
 
     mCurrentFrame.mvpMapPoints = vpMapPointMatches; // 此时直接把匹配关键帧对应的地图点给了当前帧的地图点
-    mCurrentFrame.SetPose(mLastFrame.mTcw); // 设定当前帧的 pose 初始值，为下面的 pose 优化提供初始值 这个其实就是 constant velocity motion model
+    mCurrentFrame.SetPose(mLastFrame.mTcw); // 设定当前帧的 pose 初始值，为下面的 pose 优化提供初始值,实际上如果速度过快，
+                                            // 以这个 pose 作为初始值可能结果不太好，在这里加入 Imu数据结果
+
     // 利用匹配关系进行，利用 3d 点和当前 frame 进行 3d-2d 的一元边，Pose 优化
     Optimizer::PoseOptimization(&mCurrentFrame); // 优化更新当前帧的 pose
 
@@ -850,16 +874,19 @@ bool Tracking::TrackReferenceKeyFrame()
 
     return nmatchesMap>=10;
 }
-// 下面条件不会进行处理。
-//      1）单目
-//      2）正在处于追踪模式
-//      3）上一次追踪帧变为了关键帧
+
+//! \note 对于单目来说这里没必须要对 mLastFrame 的位姿进行计算。
+//! 因为在追踪过程中，这个位姿都已经计算过了。这里重复了
+//! 满足下面条件就会直接返回。
+//!      1）单目
+//!      2）正在处于追踪模式
+//!      3）上一次追踪帧变为了关键帧
 void Tracking::UpdateLastFrame()
 {
     // Update pose according to reference keyframe
     KeyFrame* pRef = mLastFrame.mpReferenceKF;
     cv::Mat Tlr = mlRelativeFramePoses.back();
-    // 这个处理对单目来说是不是没有必要？？？？？
+    // 这个处理对单目来说是不是没有必要？？？？？ 经过分析是
     mLastFrame.SetPose(Tlr*pRef->GetPose()); // 在正式追踪第一帧完毕后，在第二帧执行这里时，实际上这里不需要进行更新，
                                             // 原本正式追踪完的这一帧 pose 就是计算好了的。这里在计算只会有数值误差。不知道其他情况下这里会不会变化？？？
     //
@@ -920,18 +947,21 @@ void Tracking::UpdateLastFrame()
             break;
     }
 }
-// 对应论文 V TRACKING --- B Initial Pose Estimation from Previous Frame
-// 这里通过假定匀速运动模型，推断出当前帧的初始位姿。然后根据上一帧地图点投影到当前帧图像，进而寻找匹配点。
-//  如果匹配对小于 20 ，还会再次加宽阈值 th = 14。再次投影匹配。只有满足当前匹配的点对 > 20 ，之后才会进行位姿优化！然后更新有效地图点个数
-//    返回值： 有效匹配的地图点是否大于 10 个，大于 10 个才算是成功跟踪
-//    里面对于定位模式的代码还没有看！！！！！！
+
+//! \see 论文 V TRACKING --- B Initial Pose Estimation from Previous Frame
+//! \brief 这里通过假定匀速运动模型，推断出当前帧的初始位姿。然后根据上一帧地图点投影到当前帧图像，进而寻找匹配点。
+//!    如果匹配对小于 20 ，还会再次加宽阈值 th = 14。再次投影匹配。只有满足当前匹配的点对 > 20
+//!    之后才会进行位姿优化！然后更新有效地图点个数
+//! \return 是否成功跟踪。（有效匹配的地图点是否大于 10 个，大于 10 个才算是成功跟踪）
+//!    里面对于定位模式的代码还没有看！！！！！！
 bool Tracking::TrackWithMotionModel()
 {
     ORBmatcher matcher(0.9,true); // 在单目初始化时，这里也是 0.9 ，但是在初始化成功后的第一帧追踪时，使用的 0.7
 
-    // Update last frame pose according to its reference keyframe 这句话需要在正常追踪后在次查看
+    // Update last frame pose according to its reference keyframe
     // Create "visual odometry" points if in Localization Mode
-    UpdateLastFrame();
+    UpdateLastFrame(); // 经过分析可知，这里对于单目来说是不需要的！！！！
+
     // 这里在速度模型失败
     mCurrentFrame.SetPose(mVelocity*mLastFrame.mTcw); // 根据匀速运动模型，估计当前帧的初始 pose。这个模型如何用 imu 替代？？
 
@@ -987,9 +1017,10 @@ bool Tracking::TrackWithMotionModel()
 
     return nmatchesMap>=10;
 }
-// 对应论文 V:TRACKING --- D Track Local Map
-//    更新局部地图{局部地图点、局部关键帧}、找到当前追踪帧中更多的地图点。之后进行 pose 优化，统计内点集。只有内点集个数满足最后的条件才算是跟踪成功！！
-//    如果不满足条件，仍然属于跟踪失败！
+
+//! \see 论文 V:TRACKING --- D Track Local Map
+//! \brief 更新局部地图{局部地图点、局部关键帧}、找到当前追踪帧中更多的地图点。之后进行 pose 优化，统计内点集。
+//!  只有内点集个数满足最后的条件才算是跟踪成功！！如果不满足条件，仍然属于跟踪失败！
 bool Tracking::TrackLocalMap()
 {
     // We have an estimation of the camera pose and some map points tracked in the frame.
@@ -1046,29 +1077,28 @@ bool Tracking::NeedNewKeyFrame()
         return false;
 
     // If Local Mapping is freezed by a Loop Closure, do not insert keyframes
-    if(mpLocalMapper->isStopped() || mpLocalMapper->stopRequested()) // ?????在闭环线程中是否使用了这些？自己在查找了该函数内部的变量。但是没有在闭环线程中出现过？
+    if(mpLocalMapper->isStopped() || mpLocalMapper->stopRequested())
         return false;
 
     const int nKFs = mpMap->KeyFramesInMap(); // 返回地图中关键帧个数
 
     // Do not insert keyframes if not enough frames have passed from last relocalisation
-    // 重定位这里还不太明白！等看完重定位时在从新看！
-    if(mCurrentFrame.mnId<mnLastRelocFrameId+mMaxFrames && nKFs>mMaxFrames) // 说明地图中关键帧容量有限制 30 。
+    if(mCurrentFrame.mnId<mnLastRelocFrameId+mMaxFrames && nKFs>mMaxFrames)
         return false;
 
     // Tracked MapPoints in the reference keyframe
     int nMinObs = 3;
     if(nKFs<=2)
         nMinObs=2; // 考虑到单目初始化成功后，正常追踪第一帧时。仅仅有两个关键帧
-    int nRefMatches = mpReferenceKF->TrackedMapPoints(nMinObs); // 当前关键帧地图点被关键帧观测次数 > mMinObs ，才表示有效的地图点。然后统计有多少个这样的地图点
+    int nRefMatches = mpReferenceKF->TrackedMapPoints(nMinObs); // 参考关键帧的被跟踪的有效地图点个数 后面对于单目来说：当前帧的追踪点要小于这个值的 90%
 
     // Local Mapping accept keyframes? // ture: 表示局部建图线程不繁忙
-    bool bLocalMappingIdle = mpLocalMapper->AcceptKeyFrames();
+    bool bLocalMappingIdle = mpLocalMapper->AcceptKeyFrames(); // 这里在局部建图线程在处理的过程中都不能插入关键帧
 
     // Check how many "close" points are being tracked and how many could be potentially created.
     int nNonTrackedClose = 0;
     int nTrackedClose= 0;
-    if(mSensor!=System::MONOCULAR)
+    if(mSensor!=System::MONOCULAR) // 不执行
     {
         for(int i =0; i<mCurrentFrame.N; i++)
         {
@@ -1098,7 +1128,7 @@ bool Tracking::NeedNewKeyFrame()
     // Condition 1b: More than "MinFrames" have passed and Local Mapping is idle
     const bool c1b = (mCurrentFrame.mnId>=mnLastKeyFrameId+mMinFrames && bLocalMappingIdle);
     //Condition 1c: tracking is weak
-    const bool c1c =  mSensor!=System::MONOCULAR && (mnMatchesInliers<nRefMatches*0.25 || bNeedToInsertClose) ; // 对于单目来说是 false
+    const bool c1c =  mSensor!=System::MONOCULAR && (mnMatchesInliers<nRefMatches*0.25 || bNeedToInsertClose) ;
     // Condition 2: Few tracked points compared to reference keyframe. Lots of visual odometry compared to map matches.
     const bool c2 = ((mnMatchesInliers<nRefMatches*thRefRatio|| bNeedToInsertClose) && mnMatchesInliers>15); // 当前追踪帧内点个数小于参考关键帧有效地图点个数的90% 且内点个数 >15
 
@@ -1111,7 +1141,7 @@ bool Tracking::NeedNewKeyFrame()
             return true;
         }
         else // 单目直接返回 flase
-        {
+        {   // 这里直接通知局部建图线程空闲，以便插入新的关键帧，防止追踪线程追踪失败
             mpLocalMapper->InterruptBA();// 这里对于单目来说直接停止 局部建图线程的 BA ,这样在局部建图线程使用局部 BA 优化时，
                                          // 每次优化都会检查这个函数内部的变量。只有这个变量为 false 时才会进行优化。这里中断优化是因为追踪过程中其实可以插入关键帧了。
                                         // 但是因为局部建图繁忙没法加入关键帧。所以这里提早结束局部建图线程的 BA 优化。然后尽快挂起局部建图线程。然后插入关键帧。否则会有追踪失败的风险！！！
@@ -1139,6 +1169,7 @@ void Tracking::CreateNewKeyFrame()
 
     mpReferenceKF = pKF; // 建立完新的关键帧后，立刻更新参考关键帧
     mCurrentFrame.mpReferenceKF = pKF;
+
     // 双目和 RGB-D 操作(待看！！！！)
     if(mSensor!=System::MONOCULAR)
     {
@@ -1209,6 +1240,7 @@ void Tracking::CreateNewKeyFrame()
     mnLastKeyFrameId = mCurrentFrame.mnId;
     mpLastKeyFrame = pKF; // 这个值从来没有用过！
 }
+
 // 在局部地图点中选择能够再次与当前追踪帧进行匹配的地图点。之后将新的地图点插入到当前追踪 Frame 中。提供了 3d-2d 优化位姿必备条件！
 void Tracking::SearchLocalPoints()
 {
@@ -1243,7 +1275,7 @@ void Tracking::SearchLocalPoints()
         if(pMP->isBad())
             continue;
         // Project (this fills MapPoint variables for matching)
-        if(mCurrentFrame.isInFrustum(pMP,0.5)) // 夹角为 60 °限制
+        if(mCurrentFrame.isInFrustum(pMP,0.5)) // 夹角为 60 °限制,会计算关键点所在的 predicted scale
         { // 地图点属于当前帧。说明 pMP 被当前帧观测到
             pMP->IncreaseVisible();
             nToMatch++;
@@ -1262,7 +1294,8 @@ void Tracking::SearchLocalPoints()
         matcher.SearchByProjection(mCurrentFrame,mvpLocalMapPoints,th); // 为 mCurrentFrame 中的 mvpMapPoints 增加一些新匹配的地图点！
     }
 }
-// 更新
+
+// 更新局部地图{地图点、关键帧}
 void Tracking::UpdateLocalMap()
 {
     // This is for visualization
@@ -1272,6 +1305,7 @@ void Tracking::UpdateLocalMap()
     UpdateLocalKeyFrames();
     UpdateLocalPoints();
 }
+
 // 根据局部关键帧组，找到所有的地图点。之后为了和当前追踪帧进行匹配，然后进行 PoseOptimization() 优化追踪帧的位姿
 void Tracking::UpdateLocalPoints()
 {
@@ -1418,10 +1452,12 @@ void Tracking::UpdateLocalKeyFrames()
         mCurrentFrame.mpReferenceKF = mpReferenceKF; // 记录当前帧对应的参考关键帧，之后在追踪时，调用 Tracking::TrackReferenceKeyFrame() 函数进行匹配
     }
 }
-// 当跟踪失败时，需要进行重定位解出跟踪帧位姿。首先根据关键帧数据库找到潜在匹配的关键帧。
-// 然后在潜在匹配的关键帧中利用 Bow+PnPsolver 获得 pose 及其匹配对,并对当前帧进行位姿优化。
-// 如果匹配点对不满足条件。那么对关键帧进行 SearchByProjection() 在多获得几个地图点。之后在次进行 pose 优化
-// 直到满足匹配的地图点个数 > 50 才算
+
+//! \brief 当跟踪失败时，需要进行重定位解出跟踪帧位姿。
+//! \details 首先根据关键帧数据库找到潜在匹配的关键帧(利用共同单词)。
+//! 然后在潜在匹配的关键帧中利用 Bow+PnPsolver 获得 pose 及其匹配对,并对当前帧进行位姿优化。
+//! 如果匹配点对不满足条件。那么对关键帧进行投影匹配 SearchByProjection() 在多获得几个地图点。之后在次进行 pose 优化
+//! 直到满足匹配的地图点个数 > 50 才算是重新定位成功
 bool Tracking::Relocalization()
 {
     // Compute Bag of Words Vector
@@ -1483,7 +1519,7 @@ bool Tracking::Relocalization()
         // 就看里面的 RANSAC 得到的 pose 结果。得到不好就会在这里一致循环。即使新来的帧数据也不会处理。这对实时运行程序不太友好！！！
     // 所以这个 bug 需要改变 bMatch 来解决！ 循环两次还不能成功就需要直接跳出循环了才对，不能在这里空等了。或者就进行一次查找找不到就直接退出！进行下一帧的处理
     // 实际上这个也不算是 bug ，只是觉得他的实现方式不太好！！！，可以试试增加迭代次数 PnPsolver 初始化时，改变哪个 3 为 4
-    while(nCandidates>0 && !bMatch)
+    while(nCandidates>0 && !bMatch) // 只要其中一个关键帧满足重定位要求就会 break
     { //std::cout << "潜在关键帧个数1： " << nCandidates << std::endl;
         for(int i=0; i<nKFs; i++)
         {

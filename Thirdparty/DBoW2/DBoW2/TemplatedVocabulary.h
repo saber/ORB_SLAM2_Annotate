@@ -1157,7 +1157,7 @@ void TemplatedVocabulary<TDescriptor,F>::transform(
       if(w > 0) // not stopped
       { 
         v.addWeight(id, w);
-        fv.addFeature(nid, i_feature); // 这里 i_feature 记录的是当前图像的描述子序号，id 是这个描述子对应的最好的树节点（指定层的）
+        fv.addFeature(nid, i_feature); // 这里 i_feature 记录的是当前图像的描述子序号，nid 是这个描述子对应的最好的树节点（指定层的）
       }
     }
     

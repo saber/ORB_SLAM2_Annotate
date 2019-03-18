@@ -217,6 +217,7 @@ vector<KeyFrame*> KeyFrameDatabase::DetectLoopCandidates(KeyFrame* pKF, float mi
 
     return vpLoopCandidates;
 }
+
 // 重定位检测。给定一个普通帧，此时处于追踪失败。该函数首先找到与当前帧有着共同单词的关键帧及其共同单词个数。
 // 按照共同单词最大个数的 80% 作为一个阈值。利用这个阈值。选择与当前帧有着较多共同单词的关键帧并计算记录关键帧和当前帧的相似性评分（词袋向量）。
 // 即这个集合为 list<pair<float,KeyFrame*> > lScoreAndMatch;
