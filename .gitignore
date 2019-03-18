@@ -1,4 +1,5 @@
 cmake-build-debug/
+feature/
 CMakeLists.txt.user
 Examples/Monocular/mono_euroc
 Examples/Monocular/mono_kitti
