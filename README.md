@@ -1,5 +1,7 @@
 本仓库为学习 orb-slam2 时的代码注释，欢迎修改注释不正确的地方!
 
+**note:**  主要是学习单目，其他无关单目的代码没有看！对于 PnPSolver.h PnPSolver.cc 文件设计的代码没有看，主要它是 opencv 自带的函数。
+
 
 
 # ORB-SLAM2

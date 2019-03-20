@@ -149,7 +149,7 @@ protected:
     // points in the map. Still tracking will continue if there are enough matches with temporal points.
     // In that case we are doing visual odometry. The system will try to do relocalization to recover
     // "zero-drift" localization to the map.
-    bool mbVO;
+    bool mbVO; // default = false
 
     //Other Thread Pointers // 在 system构造函数中直接通过 Tracking::SetLocalMapper() 类似这样的函数设置好的
     LocalMapping* mpLocalMapper;

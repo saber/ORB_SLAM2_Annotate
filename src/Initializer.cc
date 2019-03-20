@@ -41,6 +41,7 @@ Initializer::Initializer(const Frame &ReferenceFrame, float sigma, int iteration
     mSigma2 = sigma*sigma;
     mMaxIterations = iterations;
 }
+
 //! \see 对应论文中自动初始化部分:IV. AUTOMATIC MAP INITIALIZATION
 //! \brief 根据参考帧和当前帧的匹配关系，计算 H/F 矩阵恢复初始 3d 地图点
 //! \param vMatches12: 输入参数：参考帧和当前帧的匹配关系。vMatches12[i] = index ;
@@ -840,6 +841,7 @@ void Initializer::Triangulate(const cv::KeyPoint &kp1, const cv::KeyPoint &kp2, 
     x3D = vt.row(3).t(); // 点为列向量
     x3D = x3D.rowRange(0,3)/x3D.at<float>(3); // 由齐次坐标转换为非齐次坐标点
 }
+
 //! see: MVG 中文版本中 67 页。以及吴博提供的 pdf 详解单目 Initializer.cc 部分特征点归一化部分公式
 //! DLT 计算 H 矩阵的其中一步：归一化点集
 //! 计算相似变换{平移 + 缩放}

@@ -362,10 +362,10 @@ void Tracking::Track()
                         bOK = TrackReferenceKeyFrame();
                     }
                 }
-                else
+                else // 此时说明跟踪快要失败了，因为运动模型是根据上一帧的地图点来做匹配，而上一帧的地图点太少
                 {
                     // In last frame we tracked mainly "visual odometry" points.
-
+                    // 这里是说，上一帧根据运动模型跟踪时，实际与地图点有效的匹配点对太少。
                     // We compute two camera poses, one from motion model and one doing relocalization.
                     // If relocalization is sucessfull we choose that solution, otherwise we retain
                     // the "visual odometry" solution.
@@ -377,15 +377,16 @@ void Tracking::Track()
                     cv::Mat TcwMM;
                     if(!mVelocity.empty())
                     {
-                        bOKMM = TrackWithMotionModel();
+                        bOKMM = TrackWithMotionModel(); // 内部可能会改变 mbVO
                         vpMPsMM = mCurrentFrame.mvpMapPoints;
                         vbOutMM = mCurrentFrame.mvbOutlier;
                         TcwMM = mCurrentFrame.mTcw.clone();
                     }
-                    bOKReloc = Relocalization();
+                    bOKReloc = Relocalization(); // 内部计算了 pose
 
-                    if(bOKMM && !bOKReloc)
+                    if(bOKMM && !bOKReloc) // 运动模型跟踪成功！且重定位失败
                     {
+                        // 将运动模型时的结果赋值回来
                         mCurrentFrame.SetPose(TcwMM);
                         mCurrentFrame.mvpMapPoints = vpMPsMM;
                         mCurrentFrame.mvbOutlier = vbOutMM;
@@ -422,7 +423,7 @@ void Tracking::Track()
         }
         else
         { // 定位模式
-            // mbVO true means that there are few matches to MapPoints in the map. We cannot retrieve
+            // mbVO true means that there are few matches to MapPoints in the map. We cannot retrieve 地图点太少
             // a local map and therefore we do not perform TrackLocalMap(). Once the system relocalizes
             // the camera we will use the local map again.
             if(bOK && !mbVO)
@@ -1004,14 +1005,14 @@ bool Tracking::TrackWithMotionModel()
                 pMP->mnLastFrameSeen = mCurrentFrame.mnId;
                 nmatches--; // 剔除无效匹配点对
             }
-            else if(mCurrentFrame.mvpMapPoints[i]->Observations()>0)
+            else if(mCurrentFrame.mvpMapPoints[i]->Observations()>0) // 在追踪时当前地图点可能在局部建图线程中被剔除了
                 nmatchesMap++;
         }
     }    
 
     if(mbOnlyTracking)
     {
-        mbVO = nmatchesMap<10;
+        mbVO = nmatchesMap<10; // 有效匹配的地图点太少，实际上在定位模式下，这里的 nmatchesMap == nmatches
         return nmatches>20;
     }
 
@@ -1048,7 +1049,7 @@ bool Tracking::TrackLocalMap()
                     if(mCurrentFrame.mvpMapPoints[i]->Observations()>0)
                         mnMatchesInliers++;
                 }
-                else
+                else // 定位模式不需要上面的判断，是因为定位模式局部建图线程不工作，不会剔除地图点
                     mnMatchesInliers++;
             }
             else if(mSensor==System::STEREO) // 为什么单目和 RGB-D 不需要设置为 NULL???? 在 TrackReferenceKeyFrame()、TrackWithMotionModel()
